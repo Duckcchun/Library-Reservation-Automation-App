@@ -1,0 +1,10 @@
+{
+  "description": "Upload and sort library reservation lists alphabetically, then print member name labels via Bluetooth for efficient library management.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
