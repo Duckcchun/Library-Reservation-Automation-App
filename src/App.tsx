@@ -159,8 +159,8 @@ export default function App() {
         @media print {
           body * { visibility: hidden; }
           #print-area, #print-area * { visibility: visible; }
-          @page { margin: 4mm; }
-          #print-area { position: fixed; inset: 0; }
+          @page { margin: 0; size: auto; }
+          #print-area { position: absolute; top: 0; left: 0; width: 100%; }
           .label-item {
             display: flex !important;
             align-items: center !important;
@@ -171,6 +171,7 @@ export default function App() {
             break-after: page !important;
             page-break-inside: avoid !important;
             break-inside: avoid !important;
+            position: relative !important;
           }
           .label-item:last-child {
             page-break-after: auto !important;
