@@ -92,7 +92,11 @@ export default function App() {
 
   // ── 검색 필터 ──────────────────────────────────────────────────────────────
   const filtered = useMemo(
-    () => names.filter((n) => n.includes(query.trim())),
+    () => {
+      const trimmedQuery = query.trim()
+      if (!trimmedQuery) return names
+      return names.filter((n) => n.includes(trimmedQuery))
+    },
     [names, query]
   )
 
@@ -118,8 +122,9 @@ export default function App() {
     try {
       const extracted = await parseNames(file)
       setNames(extracted)
-    } catch (e) {
-      setError((e as Error).message)
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "파일 처리 중 오류가 발생했습니다."
+      setError(errorMessage)
       setFileName(null)
     } finally {
       setLoading(false)
@@ -183,7 +188,7 @@ export default function App() {
       `}</style>
 
       {/* ── 인쇄 전용 DOM ─────────────────────────────────────────────────────── */}
-      <div id="print-area" style={{ display: "none" }}>
+      <div id="print-area" className="print:block hidden">
         {names.map((name, i) => (
           <div key={i} className="label-item">
             <span className="label-name" style={{ fontSize: `${fontSize}pt` }}>{name}</span>
@@ -216,13 +221,13 @@ export default function App() {
             {names.length > 0 && (
               <>
                 <button onClick={reset}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all hover:bg-red-50"
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-300 hover:bg-red-50 hover:scale-105"
                   style={{ color: "#ef4444", border: "1px solid rgba(239,68,68,0.2)" }}>
                   <div className="w-3.5 h-3.5"><IC.Trash /></div>
                   초기화
                 </button>
                 <button onClick={handlePrint}
-                  className="flex items-center gap-2 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all hover:opacity-90 active:scale-95"
+                  className="flex items-center gap-2 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all duration-300 hover:opacity-90 hover:scale-105 active:scale-95"
                   style={{ background: "linear-gradient(135deg,#7c3aed,#6366f1)", boxShadow: "0 4px 14px rgba(124,58,237,0.35)" }}>
                   <div className="w-4 h-4"><IC.Print /></div>
                   {names.length}장 인쇄
@@ -242,12 +247,13 @@ export default function App() {
             onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
             onDragLeave={() => setDragging(false)}
             onDrop={onDrop}
-            className="rounded-2xl cursor-pointer select-none flex flex-col items-center justify-center gap-4 py-12 px-8 text-center transition-all duration-200"
+            className="rounded-2xl cursor-pointer select-none flex flex-col items-center justify-center gap-4 py-12 px-8 text-center transition-all duration-300"
             style={{
               background: dragging ? "linear-gradient(135deg,#ede9fe,#e0e7ff)" : "rgba(255,255,255,0.82)",
               border: `2px dashed ${dragging ? "#7c3aed" : fileName ? "rgba(124,58,237,0.35)" : "rgba(139,92,246,0.2)"}`,
               backdropFilter: "blur(8px)",
               boxShadow: dragging ? "0 0 0 4px rgba(124,58,237,0.1),0 8px 32px rgba(124,58,237,0.08)" : "0 2px 16px rgba(0,0,0,0.04)",
+              transform: dragging ? "scale(1.02)" : "scale(1)",
             }}
           >
             <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={onInputChange} />
@@ -262,15 +268,15 @@ export default function App() {
               </>
             ) : fileName && names.length > 0 ? (
               <>
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center"
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center animate-bounce"
                   style={{ background: "linear-gradient(135deg,#ede9fe,#e0e7ff)" }}>
                   <div style={{ color: "#7c3aed" }} className="w-7 h-7"><IC.File /></div>
                 </div>
-                <div>
+                <div className="animate-fade-in">
                   <p className="font-semibold" style={{ fontSize: 14, color: "#1e1b4b" }}>{fileName}</p>
                   <p style={{ fontSize: 12, color: "#a78bfa" }} className="mt-0.5">파일을 바꾸려면 클릭하거나 새 파일을 드래그하세요</p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 animate-fade-in">
                   <span className="text-white font-semibold px-4 py-1.5 rounded-full"
                     style={{ background: "linear-gradient(135deg,#7c3aed,#6366f1)", fontSize: 12 }}>
                     {names.length}명 추출 완료
@@ -377,10 +383,8 @@ export default function App() {
                         const isDup = duplicates.has(name)
                         return (
                           <div key={`${name}-${i}`}
-                            className="group flex items-center gap-3 px-5 py-3 transition-colors"
+                            className="group flex items-center gap-3 px-5 py-3 transition-all duration-300 hover:bg-purple-50/50 hover:translate-x-1"
                             style={{ borderBottom: "1px solid rgba(139,92,246,0.06)" }}
-                            onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.background = "rgba(124,58,237,0.03)" }}
-                            onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.background = "transparent" }}
                           >
                             <span style={{ fontSize: 10, color: "#c4b5fd", width: 22, textAlign: "right", flexShrink: 0, fontFamily: "'Inter',monospace", fontVariantNumeric: "tabular-nums" }}>
                               {i + 1}
@@ -393,11 +397,9 @@ export default function App() {
                                 중복
                               </span>
                             )}
-                            <button onClick={() => removeName(names.indexOf(name))}
-                              className="opacity-0 group-hover:opacity-100 transition-all w-6 h-6 rounded-lg flex items-center justify-center"
+                            <button onClick={() => removeName(i)}
+                              className="opacity-0 group-hover:opacity-100 transition-all duration-300 w-6 h-6 rounded-lg flex items-center justify-center hover:bg-red-50/20 hover:text-red-500 hover:scale-110"
                               style={{ color: "#c4b5fd" }}
-                              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(239,68,68,0.08)"; (e.currentTarget as HTMLButtonElement).style.color = "#ef4444" }}
-                              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; (e.currentTarget as HTMLButtonElement).style.color = "#c4b5fd" }}
                               title="삭제">
                               <div className="w-3 h-3"><IC.X /></div>
                             </button>
@@ -461,7 +463,7 @@ export default function App() {
                   </div>
 
                   <button onClick={handlePrint}
-                    className="w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all"
+                    className="w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:opacity-90 hover:scale-105 active:scale-95 transition-all duration-300"
                     style={{ background: "#fff", color: "#4c1d95", fontSize: 14, boxShadow: "0 4px 12px rgba(0,0,0,0.15)" }}>
                     <div className="w-4 h-4"><IC.Print /></div>
                     전체 라벨 일괄 인쇄
