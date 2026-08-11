@@ -2,6 +2,7 @@ import {
   LABEL_LENGTH_MM,
   LABEL_TAPE_WIDTH_MM,
   NAMES_PER_LABEL,
+  NAME_RIGHT_PADDING_MM,
 } from "@/constants"
 
 function chunkNames(names: string[]): string[][] {
@@ -104,14 +105,20 @@ function buildPrintHtml(pages: string[][], fontSizePt: number): string {
       padding-left: 1mm;
     }
 
+    .label-single .name {
+      padding-right: ${NAME_RIGHT_PADDING_MM}mm;
+    }
+
     .label-pair {
       display: grid;
       grid-template-columns: 1fr 1fr;
       align-items: center;
+      column-gap: 1mm;
     }
 
     .label-pair .name {
       padding-left: 1mm;
+      padding-right: ${NAME_RIGHT_PADDING_MM}mm;
     }
   </style>
 </head>
