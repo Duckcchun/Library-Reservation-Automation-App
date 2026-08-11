@@ -128,58 +128,17 @@ export async function downloadLabelPdf(names: string[], fontSizePt: number): Pro
   setTimeout(() => URL.revokeObjectURL(url), 10_000)
 }
 
-export async function printLabelPdf(names: string[], fontSizePt: number): Promise<void> {
+export async function openLabelPdf(names: string[], fontSizePt: number): Promise<void> {
   const pdfBytes = await generateLabelPdf(names, fontSizePt)
   const blob = new Blob([pdfBytes], { type: "application/pdf" })
   const url = URL.createObjectURL(blob)
 
-  return new Promise((resolve, reject) => {
-    const iframe = document.createElement("iframe")
-    iframe.style.position = "fixed"
-    iframe.style.right = "0"
-    iframe.style.bottom = "0"
-    iframe.style.width = "0"
-    iframe.style.height = "0"
-    iframe.style.border = "none"
-    iframe.src = url
+  const win = window.open(url, "_blank")
+  if (!win) {
+    URL.revokeObjectURL(url)
+    throw new Error("팝업이 차단되었습니다. 'PDF 저장' 버튼을 사용해 주세요.")
+  }
 
-    const cleanup = () => {
-      iframe.remove()
-      URL.revokeObjectURL(url)
-    }
-
-    iframe.onload = () => {
-      try {
-        const win = iframe.contentWindow
-        if (!win) throw new Error("PDF 인쇄 창을 열 수 없습니다.")
-
-        win.focus()
-        win.print()
-
-        win.addEventListener("afterprint", () => {
-          cleanup()
-          resolve()
-        })
-
-        setTimeout(() => {
-          cleanup()
-          resolve()
-        }, 60_000)
-      } catch (err) {
-        cleanup()
-        reject(err instanceof Error ? err : new Error("PDF 인쇄에 실패했습니다."))
-      }
-    }
-
-    iframe.onerror = () => {
-      cleanup()
-      reject(new Error("PDF를 불러오지 못했습니다."))
-    }
-
-    document.body.appendChild(iframe)
-  })
-}
-
-export function printLabelsDirect(): void {
-  window.print()
+  // 새 탭에서 PDF 로드할 시간 확보
+  setTimeout(() => URL.revokeObjectURL(url), 300_000)
 }

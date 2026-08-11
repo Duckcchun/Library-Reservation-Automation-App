@@ -2,11 +2,10 @@ import { useState, useCallback, useRef, useMemo, DragEvent, ChangeEvent } from "
 import { parseNames, type ParseStats } from "@/utils/parseNames"
 import { FONT, SUPPORTED_EXTENSIONS, DEFAULT_FONT_SIZE_PT } from "@/constants"
 import { IC } from "@/components/icons"
-import { PrintArea } from "@/components/PrintArea"
 import { UploadZone } from "@/components/UploadZone"
 import { NameList } from "@/components/NameList"
 import { PrintPanel } from "@/components/PrintPanel"
-import { downloadLabelPdf, printLabelPdf, printLabelsDirect } from "@/utils/printLabels"
+import { downloadLabelPdf, openLabelPdf } from "@/utils/printLabels"
 
 export default function App() {
   const [names, setNames] = useState<string[]>([])
@@ -89,23 +88,6 @@ export default function App() {
     setParseStats(null)
   }
 
-  const handlePrintPdf = useCallback(async () => {
-    if (!names.length || printing) return
-
-    setPrinting(true)
-    setError(null)
-
-    try {
-      await printLabelPdf(names, fontSize)
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "PDF 인쇄 중 오류가 발생했습니다."
-      setError(message)
-    } finally {
-      setPrinting(false)
-    }
-  }, [names, fontSize, printing])
-
   const handleDownloadPdf = useCallback(async () => {
     if (!names.length || printing) return
 
@@ -123,13 +105,25 @@ export default function App() {
     }
   }, [names, fontSize, printing])
 
-  const handleDirectPrint = () => printLabelsDirect()
+  const handleOpenPdf = useCallback(async () => {
+    if (!names.length || printing) return
+
+    setPrinting(true)
+    setError(null)
+
+    try {
+      await openLabelPdf(names, fontSize)
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "PDF 열기 중 오류가 발생했습니다."
+      setError(message)
+    } finally {
+      setPrinting(false)
+    }
+  }, [names, fontSize, printing])
 
   return (
-    <>
-      <PrintArea names={names} fontSize={fontSize} />
-
-      <div
+    <div
         className="min-h-screen print:hidden flex flex-col"
         style={{
           fontFamily: FONT,
@@ -180,7 +174,7 @@ export default function App() {
                   초기화
                 </button>
                 <button
-                  onClick={handlePrintPdf}
+                  onClick={handleDownloadPdf}
                   disabled={printing}
                   className="flex items-center gap-2 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all duration-300 hover:opacity-90 hover:scale-105 active:scale-95 disabled:opacity-60 disabled:scale-100"
                   style={{
@@ -189,9 +183,9 @@ export default function App() {
                   }}
                 >
                   <div className="w-4 h-4">
-                    {printing ? <IC.Spinner /> : <IC.Print />}
+                    {printing ? <IC.Spinner /> : <IC.File />}
                   </div>
-                  {printing ? "PDF 생성 중..." : `${names.length}장 PDF 인쇄`}
+                  {printing ? "PDF 생성 중..." : `PDF 저장 (${names.length}장)`}
                 </button>
               </>
             )}
@@ -256,9 +250,8 @@ export default function App() {
                 previewName={names[0] ?? "홍길동"}
                 printing={printing}
                 onFontSizeChange={setFontSize}
-                onPrintPdf={handlePrintPdf}
                 onDownloadPdf={handleDownloadPdf}
-                onDirectPrint={handleDirectPrint}
+                onOpenPdf={handleOpenPdf}
               />
             </div>
           )}
@@ -274,6 +267,5 @@ export default function App() {
           자양한강도서관 · 예약 도서 라벨 인쇄 시스템
         </footer>
       </div>
-    </>
   )
 }

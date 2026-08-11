@@ -7,9 +7,8 @@ type PrintPanelProps = {
   previewName: string
   printing: boolean
   onFontSizeChange: (size: number) => void
-  onPrintPdf: () => void
   onDownloadPdf: () => void
-  onDirectPrint: () => void
+  onOpenPdf: () => void
 }
 
 export function PrintPanel({
@@ -18,9 +17,8 @@ export function PrintPanel({
   previewName,
   printing,
   onFontSizeChange,
-  onPrintPdf,
   onDownloadPdf,
-  onDirectPrint,
+  onOpenPdf,
 }: PrintPanelProps) {
   return (
     <div className="flex flex-col gap-4">
@@ -44,9 +42,12 @@ export function PrintPanel({
           className="rounded-xl px-4 py-3"
           style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }}
         >
-          <p style={{ fontSize: 11, color: "#ddd6fe", lineHeight: 1.5 }}>
-            PDF로 30×12mm 페이지를 고정 생성합니다. 프린터는{" "}
-            <strong style={{ color: "#fff" }}>자동 길이(Auto)</strong>로 두세요.
+          <p style={{ fontSize: 11, color: "#ddd6fe", lineHeight: 1.6 }}>
+            PDF 파일 자체는 정상입니다. 인쇄 대화상자에서{" "}
+            <strong style={{ color: "#fff" }}>&apos;12mm 테이프&apos; 용지 프리셋</strong>을
+            고르면 드라이버가 페이지 크기를 덮어써서 왼쪽 정렬·여백이 생깁니다.
+            <br />
+            <strong style={{ color: "#fff" }}>PDF 저장</strong> 후 Adobe/미리보기에서 인쇄하세요.
           </p>
         </div>
 
@@ -110,7 +111,7 @@ export function PrintPanel({
         </div>
 
         <button
-          onClick={onPrintPdf}
+          onClick={onDownloadPdf}
           disabled={printing}
           className="w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:opacity-90 hover:scale-105 active:scale-95 transition-all duration-300 disabled:opacity-60 disabled:scale-100 disabled:cursor-wait"
           style={{
@@ -121,29 +122,22 @@ export function PrintPanel({
           }}
         >
           <div className="w-4 h-4">
-            {printing ? <IC.Spinner /> : <IC.Print />}
+            {printing ? <IC.Spinner /> : <IC.File />}
           </div>
-          {printing ? "PDF 생성 중..." : "PDF로 일괄 인쇄"}
+          {printing ? "PDF 생성 중..." : "PDF 저장 (권장)"}
         </button>
 
-        <div className="flex gap-2">
-          <button
-            onClick={onDownloadPdf}
-            disabled={printing}
-            className="flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300 hover:bg-white/10 disabled:opacity-50"
-            style={{ border: "1px solid rgba(255,255,255,0.25)", color: "#ede9fe" }}
-          >
-            PDF 저장
-          </button>
-          <button
-            onClick={onDirectPrint}
-            disabled={printing}
-            className="flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300 hover:bg-white/10 disabled:opacity-50"
-            style={{ border: "1px solid rgba(255,255,255,0.25)", color: "#ede9fe" }}
-          >
-            브라우저 직접 인쇄
-          </button>
-        </div>
+        <button
+          onClick={onOpenPdf}
+          disabled={printing}
+          className="w-full py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all duration-300 hover:bg-white/10 disabled:opacity-50"
+          style={{ border: "1px solid rgba(255,255,255,0.25)", color: "#ede9fe" }}
+        >
+          <div className="w-3.5 h-3.5">
+            <IC.Print />
+          </div>
+          PDF 새 탭에서 열기
+        </button>
       </div>
 
       <div

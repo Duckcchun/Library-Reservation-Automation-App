@@ -11,6 +11,19 @@
 - 이름 검색, 개별 삭제, 글자 크기 조절
 - 라벨 1장 = 1페이지 일괄 인쇄
 
+## 배포
+
+### Vercel (권장)
+
+GitHub 저장소 연결 후 자동 배포됩니다. `VITE_BASE` 환경변수는 **설정하지 마세요** (루트 `/` 기본값 사용).
+
+### GitHub Pages (선택)
+
+```bash
+VITE_BASE=/Library-Reservation-Automation-App/ npm run build
+npx gh-pages -d dist
+```
+
 ## 인쇄 방법 (권장)
 
 1. **PDF로 일괄 인쇄** 버튼 클릭 — 30×12mm 페이지가 고정된 PDF 생성
