@@ -14,6 +14,9 @@ export const MAX_FONT_SIZE_PT = 100
 export const PRINTER_DPI = 180
 export const MM_TO_PT = 72 / 25.4
 
+/** PDF 1장(라벨 1장)에 넣을 이름 수 */
+export const NAMES_PER_LABEL = 2
+
 export const PRINT_TIPS = [
   "PDF 저장 후 Adobe Reader에서 인쇄 (Chrome 인쇄 비권장)",
   "배율: 100% (페이지에 맞춤 끄기)",

@@ -5,7 +5,7 @@ import { IC } from "@/components/icons"
 import { UploadZone } from "@/components/UploadZone"
 import { NameList } from "@/components/NameList"
 import { PrintPanel } from "@/components/PrintPanel"
-import { downloadLabelPdf } from "@/utils/printLabels"
+import { downloadLabelPdf, countLabelPages } from "@/utils/printLabels"
 
 export default function App() {
   const [names, setNames] = useState<string[]>([])
@@ -168,7 +168,7 @@ export default function App() {
                   <div className="w-4 h-4">
                     {exporting ? <IC.Spinner /> : <IC.File />}
                   </div>
-                  {exporting ? "PDF 생성 중..." : `PDF 저장 (${names.length}장)`}
+                  {exporting ? "PDF 생성 중..." : `PDF (${countLabelPages(names.length)}장)`}
                 </button>
               </>
             )}
@@ -230,7 +230,11 @@ export default function App() {
               <PrintPanel
                 namesCount={names.length}
                 fontSize={fontSize}
-                previewName={names[0] ?? "홍길동"}
+                previewNames={
+                  names.length >= 2
+                    ? [names[0], names[1]]
+                    : [names[0] ?? "홍길동"]
+                }
                 exporting={exporting}
                 onFontSizeChange={setFontSize}
                 onDownloadPdf={handleDownloadPdf}

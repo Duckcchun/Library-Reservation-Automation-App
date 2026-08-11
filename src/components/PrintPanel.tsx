@@ -1,10 +1,11 @@
 import { IC } from "./icons"
-import { PRINT_TIPS, MAX_FONT_SIZE_PT, MIN_FONT_SIZE_PT } from "@/constants"
+import { PRINT_TIPS, MAX_FONT_SIZE_PT, MIN_FONT_SIZE_PT, NAMES_PER_LABEL } from "@/constants"
+import { countLabelPages } from "@/utils/printLabels"
 
 type PrintPanelProps = {
   namesCount: number
   fontSize: number
-  previewName: string
+  previewNames: string[]
   exporting: boolean
   onFontSizeChange: (size: number) => void
   onDownloadPdf: () => void
@@ -13,11 +14,13 @@ type PrintPanelProps = {
 export function PrintPanel({
   namesCount,
   fontSize,
-  previewName,
+  previewNames,
   exporting,
   onFontSizeChange,
   onDownloadPdf,
 }: PrintPanelProps) {
+  const pageCount = countLabelPages(namesCount)
+
   return (
     <div className="flex flex-col gap-4">
       <div
@@ -32,7 +35,7 @@ export function PrintPanel({
             라벨 PDF
           </p>
           <p style={{ fontSize: 12, color: "rgba(196,181,253,0.8)" }} className="mt-0.5">
-            30×12mm · {namesCount}장
+            30×12mm · {NAMES_PER_LABEL}명/장 · {pageCount}장
           </p>
         </div>
 
@@ -41,12 +44,12 @@ export function PrintPanel({
           style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}
         >
           <div className="px-4 py-3 text-center">
-            <p style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.03em" }}>{namesCount}</p>
-            <p style={{ fontSize: 11, color: "#c4b5fd" }}>총 라벨</p>
+            <p style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.03em" }}>{pageCount}</p>
+            <p style={{ fontSize: 11, color: "#c4b5fd" }}>PDF 장수</p>
           </div>
           <div className="px-4 py-3 text-center">
-            <p style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.03em" }}>30mm</p>
-            <p style={{ fontSize: 11, color: "#c4b5fd" }}>라벨 길이</p>
+            <p style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.03em" }}>{namesCount}</p>
+            <p style={{ fontSize: 11, color: "#c4b5fd" }}>총 인원</p>
           </div>
         </div>
 
@@ -90,7 +93,7 @@ export function PrintPanel({
                 letterSpacing: "-0.02em",
               }}
             >
-              {previewName}
+              {previewNames.join("  ·  ")}
             </span>
           </div>
         </div>
@@ -109,7 +112,7 @@ export function PrintPanel({
           <div className="w-4 h-4">
             {exporting ? <IC.Spinner /> : <IC.File />}
           </div>
-          {exporting ? "PDF 생성 중..." : `PDF 저장 (${namesCount}장)`}
+          {exporting ? "PDF 생성 중..." : `PDF 저장 (${pageCount}장 · ${namesCount}명)`}
         </button>
       </div>
 
