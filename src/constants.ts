@@ -14,7 +14,10 @@ export const MAX_FONT_SIZE_PT = 36
 export const MM_TO_PT = 72 / 25.4
 
 export const NOTO_SANS_KR_BOLD_URL =
-  "https://cdn.jsdelivr.net/fontsource/fonts/noto-sans-kr@5.2.5/korean-700-normal.woff"
+  "https://cdn.jsdelivr.net/gh/notofonts/noto-cjk@main/Sans/SubsetOTF/KR/NotoSansKR-Bold.otf"
+
+/** PDF 텍스트 세로 위치 보정 (baseline을 위로 올림) */
+export const LABEL_TEXT_Y_OFFSET_PT = 3.5
 
 export const PRINT_TIPS = [
   "프린터: Epson LW-K600 선택",
