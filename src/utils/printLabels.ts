@@ -1,7 +1,6 @@
 import {
   LABEL_LENGTH_MM,
   LABEL_TAPE_WIDTH_MM,
-  MM_TO_PT,
   PRINTER_DPI,
   NAMES_PER_LABEL,
 } from "@/constants"
@@ -32,7 +31,7 @@ async function ensureFontLoaded(fontSizePx: number): Promise<void> {
 }
 
 /** 30×12mm 라벨 PNG — 최대 2명, 좌우 반칸씩 왼쪽 정렬 */
-async function renderLabelPng(namesOnLabel: string[], fontSizePt: number): Promise<Uint8Array> {
+async function renderLabelDataUrl(namesOnLabel: string[], fontSizePt: number): Promise<string> {
   const pxW = mmToPx(LABEL_LENGTH_MM)
   const pxH = mmToPx(LABEL_TAPE_WIDTH_MM)
   const halfW = pxW / 2
@@ -81,52 +80,98 @@ async function renderLabelPng(namesOnLabel: string[], fontSizePt: number): Promi
     ctx.fillText(namesOnLabel[1], halfW + padding, pxH / 2)
   }
 
-  const blob = await new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("PNG 변환 실패"))), "image/png")
-  })
-
-  return new Uint8Array(await blob.arrayBuffer())
+  return canvas.toDataURL("image/png")
 }
 
-export async function generateLabelPdf(
-  names: string[],
-  fontSizePt: number,
-): Promise<Uint8Array> {
-  const { PDFDocument } = await import("pdf-lib")
+function buildPrintHtml(pages: string[]): string {
+  const pageHtml = pages
+    .map(
+      (src) =>
+        `<div class="page"><img src="${src}" alt="" width="${LABEL_LENGTH_MM}mm" height="${LABEL_TAPE_WIDTH_MM}mm" /></div>`,
+    )
+    .join("")
 
-  const pageWidth = LABEL_LENGTH_MM * MM_TO_PT
-  const pageHeight = LABEL_TAPE_WIDTH_MM * MM_TO_PT
-  const pdfDoc = await PDFDocument.create()
+  return `<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>라벨 인쇄</title>
+  <style>
+    @page {
+      size: ${LABEL_LENGTH_MM}mm ${LABEL_TAPE_WIDTH_MM}mm;
+      margin: 0;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .page {
+      width: ${LABEL_LENGTH_MM}mm;
+      height: ${LABEL_TAPE_WIDTH_MM}mm;
+      overflow: hidden;
+      page-break-after: always;
+      break-after: page;
+    }
+    .page:last-child {
+      page-break-after: auto;
+      break-after: auto;
+    }
+    img {
+      display: block;
+      width: ${LABEL_LENGTH_MM}mm;
+      height: ${LABEL_TAPE_WIDTH_MM}mm;
+      object-fit: fill;
+    }
+  </style>
+</head>
+<body>${pageHtml}</body>
+</html>`
+}
 
-  for (const pair of chunkNames(names)) {
-    const pngBytes = await renderLabelPng(pair, fontSizePt)
-    const pngImage = await pdfDoc.embedPng(pngBytes)
-    const page = pdfDoc.addPage([pageWidth, pageHeight])
+export async function printLabels(names: string[], fontSizePt: number): Promise<void> {
+  const pairs = chunkNames(names)
+  const pages = await Promise.all(pairs.map((pair) => renderLabelDataUrl(pair, fontSizePt)))
 
-    page.setMediaBox(0, 0, pageWidth, pageHeight)
-    page.setCropBox(0, 0, pageWidth, pageHeight)
+  const iframe = document.createElement("iframe")
+  iframe.setAttribute("aria-hidden", "true")
+  iframe.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0;opacity:0;pointer-events:none"
+  document.body.appendChild(iframe)
 
-    page.drawImage(pngImage, {
-      x: 0,
-      y: 0,
-      width: pageWidth,
-      height: pageHeight,
-    })
+  const win = iframe.contentWindow
+  const doc = iframe.contentDocument ?? win?.document
+  if (!win || !doc) {
+    iframe.remove()
+    throw new Error("인쇄 창을 열 수 없습니다.")
   }
 
-  return pdfDoc.save()
-}
+  doc.open()
+  doc.write(buildPrintHtml(pages))
+  doc.close()
 
-export async function downloadLabelPdf(names: string[], fontSizePt: number): Promise<void> {
-  const pdfBytes = await generateLabelPdf(names, fontSizePt)
-  const blob = new Blob([pdfBytes], { type: "application/pdf" })
-  const url = URL.createObjectURL(blob)
+  await new Promise<void>((resolve) => {
+    const done = () => resolve()
+    if (doc.readyState === "complete") {
+      resolve()
+      return
+    }
+    iframe.addEventListener("load", done, { once: true })
+    setTimeout(done, 500)
+  })
 
-  const pageCount = countLabelPages(names.length)
-  const anchor = document.createElement("a")
-  anchor.href = url
-  anchor.download = `라벨_${names.length}명_${pageCount}장.pdf`
-  anchor.click()
+  await new Promise<void>((resolve) => {
+    let settled = false
+    const finish = () => {
+      if (settled) return
+      settled = true
+      iframe.remove()
+      resolve()
+    }
 
-  setTimeout(() => URL.revokeObjectURL(url), 10_000)
+    win.addEventListener("afterprint", finish, { once: true })
+    win.focus()
+    win.print()
+    setTimeout(finish, 60_000)
+  })
 }

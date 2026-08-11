@@ -5,7 +5,7 @@ import { IC } from "@/components/icons"
 import { UploadZone } from "@/components/UploadZone"
 import { NameList } from "@/components/NameList"
 import { PrintPanel } from "@/components/PrintPanel"
-import { downloadLabelPdf, countLabelPages } from "@/utils/printLabels"
+import { printLabels, countLabelPages } from "@/utils/printLabels"
 
 export default function App() {
   const [names, setNames] = useState<string[]>([])
@@ -16,7 +16,7 @@ export default function App() {
   const [query, setQuery] = useState("")
   const [fontSize, setFontSize] = useState(DEFAULT_FONT_SIZE_PT)
   const [parseStats, setParseStats] = useState<ParseStats | null>(null)
-  const [exporting, setExporting] = useState(false)
+  const [printing, setPrinting] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   const filtered = useMemo(() => {
@@ -88,22 +88,22 @@ export default function App() {
     setParseStats(null)
   }
 
-  const handleDownloadPdf = useCallback(async () => {
-    if (!names.length || exporting) return
+  const handlePrint = useCallback(async () => {
+    if (!names.length || printing) return
 
-    setExporting(true)
+    setPrinting(true)
     setError(null)
 
     try {
-      await downloadLabelPdf(names, fontSize)
+      await printLabels(names, fontSize)
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : "PDF 저장 중 오류가 발생했습니다."
+        err instanceof Error ? err.message : "인쇄 준비 중 오류가 발생했습니다."
       setError(message)
     } finally {
-      setExporting(false)
+      setPrinting(false)
     }
-  }, [names, fontSize, exporting])
+  }, [names, fontSize, printing])
 
   return (
     <div
@@ -157,8 +157,8 @@ export default function App() {
                   초기화
                 </button>
                 <button
-                  onClick={handleDownloadPdf}
-                  disabled={exporting}
+                  onClick={handlePrint}
+                  disabled={printing}
                   className="flex items-center gap-2 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all duration-300 hover:opacity-90 hover:scale-105 active:scale-95 disabled:opacity-60 disabled:scale-100"
                   style={{
                     background: "linear-gradient(135deg,#7c3aed,#6366f1)",
@@ -166,9 +166,9 @@ export default function App() {
                   }}
                 >
                   <div className="w-4 h-4">
-                    {exporting ? <IC.Spinner /> : <IC.File />}
+                    {printing ? <IC.Spinner /> : <IC.Print />}
                   </div>
-                  {exporting ? "PDF 생성 중..." : `PDF (${countLabelPages(names.length)}장)`}
+                  {printing ? "인쇄 준비 중..." : `인쇄 (${countLabelPages(names.length)}장)`}
                 </button>
               </>
             )}
@@ -235,9 +235,9 @@ export default function App() {
                     ? [names[0], names[1]]
                     : [names[0] ?? "홍길동"]
                 }
-                exporting={exporting}
+                printing={printing}
                 onFontSizeChange={setFontSize}
-                onDownloadPdf={handleDownloadPdf}
+                onPrint={handlePrint}
               />
             </div>
           )}

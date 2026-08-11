@@ -6,18 +6,18 @@ type PrintPanelProps = {
   namesCount: number
   fontSize: number
   previewNames: string[]
-  exporting: boolean
+  printing: boolean
   onFontSizeChange: (size: number) => void
-  onDownloadPdf: () => void
+  onPrint: () => void
 }
 
 export function PrintPanel({
   namesCount,
   fontSize,
   previewNames,
-  exporting,
+  printing,
   onFontSizeChange,
-  onDownloadPdf,
+  onPrint,
 }: PrintPanelProps) {
   const pageCount = countLabelPages(namesCount)
 
@@ -32,7 +32,7 @@ export function PrintPanel({
       >
         <div>
           <p className="font-bold" style={{ fontSize: 16 }}>
-            라벨 PDF
+            라벨 인쇄
           </p>
           <p style={{ fontSize: 12, color: "rgba(196,181,253,0.8)" }} className="mt-0.5">
             30×12mm · {NAMES_PER_LABEL}명/장 · {pageCount}장
@@ -45,7 +45,7 @@ export function PrintPanel({
         >
           <div className="px-4 py-3 text-center">
             <p style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.03em" }}>{pageCount}</p>
-            <p style={{ fontSize: 11, color: "#c4b5fd" }}>PDF 장수</p>
+            <p style={{ fontSize: 11, color: "#c4b5fd" }}>인쇄 장수</p>
           </div>
           <div className="px-4 py-3 text-center">
             <p style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.03em" }}>{namesCount}</p>
@@ -71,7 +71,7 @@ export function PrintPanel({
             onChange={(e) => onFontSizeChange(Number(e.target.value))}
             className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
             style={{ accentColor: "#a78bfa" }}
-            disabled={exporting}
+            disabled={printing}
           />
           <div className="flex justify-between mt-1" style={{ fontSize: 10, color: "rgba(196,181,253,0.5)" }}>
             <span>{MIN_FONT_SIZE_PT}pt</span>
@@ -99,8 +99,8 @@ export function PrintPanel({
         </div>
 
         <button
-          onClick={onDownloadPdf}
-          disabled={exporting}
+          onClick={onPrint}
+          disabled={printing}
           className="w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:opacity-90 hover:scale-105 active:scale-95 transition-all duration-300 disabled:opacity-60 disabled:scale-100 disabled:cursor-wait"
           style={{
             background: "#fff",
@@ -110,9 +110,9 @@ export function PrintPanel({
           }}
         >
           <div className="w-4 h-4">
-            {exporting ? <IC.Spinner /> : <IC.File />}
+            {printing ? <IC.Spinner /> : <IC.Print />}
           </div>
-          {exporting ? "PDF 생성 중..." : `PDF 저장 (${pageCount}장 · ${namesCount}명)`}
+          {printing ? "인쇄 준비 중..." : `바로 인쇄 (${pageCount}장 · ${namesCount}명)`}
         </button>
       </div>
 

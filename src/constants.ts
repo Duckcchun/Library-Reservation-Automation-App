@@ -18,7 +18,7 @@ export const MM_TO_PT = 72 / 25.4
 export const NAMES_PER_LABEL = 2
 
 export const PRINT_TIPS = [
-  "PDF 저장 후 Adobe Reader에서 인쇄 (Chrome 인쇄 비권장)",
+  "인쇄 대화상자에서 Epson LW-K600 선택",
   "배율: 100% (페이지에 맞춤 끄기)",
   "테이프 길이: 자동(Auto)",
   "여백(Margin): 없음",
