@@ -3,6 +3,7 @@ import {
   LABEL_TAPE_WIDTH_MM,
   NAMES_PER_LABEL,
   NAME_RIGHT_PADDING_MM,
+  NAME_COLUMN_GAP_MM,
 } from "@/constants"
 
 function chunkNames(names: string[]): string[][] {
@@ -113,7 +114,7 @@ function buildPrintHtml(pages: string[][], fontSizePt: number): string {
       display: grid;
       grid-template-columns: 1fr 1fr;
       align-items: center;
-      column-gap: 1mm;
+      column-gap: ${NAME_COLUMN_GAP_MM}mm;
     }
 
     .label-pair .name {

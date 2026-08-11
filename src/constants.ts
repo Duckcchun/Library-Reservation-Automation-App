@@ -12,7 +12,9 @@ export const MIN_FONT_SIZE_PT = 12
 export const MAX_FONT_SIZE_PT = 44
 
 /** 2명/장일 때 이름 오른쪽 여백 mm */
-export const NAME_RIGHT_PADDING_MM = 1.5
+export const NAME_RIGHT_PADDING_MM = 4.5
+/** 2명/장일 때 좌·우 이름 사이 간격 mm */
+export const NAME_COLUMN_GAP_MM = 3
 
 export const PRINTER_DPI = 180
 export const MM_TO_PT = 72 / 25.4
