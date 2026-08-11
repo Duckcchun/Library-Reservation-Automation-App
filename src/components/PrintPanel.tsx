@@ -1,6 +1,7 @@
+import { useEffect, useState } from "react"
 import { IC } from "./icons"
 import { PRINT_TIPS, MAX_FONT_SIZE_PT, MIN_FONT_SIZE_PT, NAMES_PER_LABEL } from "@/constants"
-import { countLabelPages } from "@/utils/printLabels"
+import { countLabelPages, getPreviewFontSizePt } from "@/utils/printLabels"
 
 type PrintPanelProps = {
   namesCount: number
@@ -20,6 +21,21 @@ export function PrintPanel({
   onPrint,
 }: PrintPanelProps) {
   const pageCount = countLabelPages(namesCount)
+  const [fittedPt, setFittedPt] = useState(fontSize)
+
+  useEffect(() => {
+    let cancelled = false
+
+    void getPreviewFontSizePt(previewNames, fontSize).then((pt) => {
+      if (!cancelled) setFittedPt(pt)
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [previewNames, fontSize])
+
+  const isTwoUp = previewNames.length >= 2
 
   return (
     <div className="flex flex-col gap-4">
@@ -60,6 +76,9 @@ export function PrintPanel({
               style={{ fontSize: 12, color: "#fff", fontWeight: 600, fontFamily: "'Inter',monospace" }}
             >
               {fontSize}pt
+              {fittedPt < fontSize && (
+                <span style={{ color: "#c4b5fd", fontWeight: 500 }}> → {fittedPt}pt</span>
+              )}
             </span>
           </div>
           <input
@@ -78,24 +97,54 @@ export function PrintPanel({
             <span>{MAX_FONT_SIZE_PT}pt</span>
           </div>
           <div
-            className="mt-3 rounded-xl flex items-center justify-center py-3"
+            className="mt-3 rounded-xl flex items-center py-3"
             style={{
               background: "rgba(255,255,255,0.07)",
               border: "1px solid rgba(255,255,255,0.1)",
               minHeight: 56,
             }}
           >
-            <span
-              style={{
-                fontSize: Math.round(fontSize * 0.84),
-                fontWeight: 700,
-                color: "#fff",
-                letterSpacing: "-0.02em",
-              }}
-            >
-              {previewNames.join("  ·  ")}
-            </span>
+            {isTwoUp ? (
+              previewNames.map((name, index) => (
+                <div
+                  key={`${name}-${index}`}
+                  className="flex-1 min-w-0 px-2 text-left overflow-hidden"
+                  style={{
+                    borderLeft: index > 0 ? "1px solid rgba(255,255,255,0.12)" : undefined,
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: Math.round(fittedPt * 0.84),
+                      fontWeight: 700,
+                      color: "#fff",
+                      letterSpacing: "-0.02em",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {name}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <span
+                className="px-2"
+                style={{
+                  fontSize: Math.round(fittedPt * 0.84),
+                  fontWeight: 700,
+                  color: "#fff",
+                  letterSpacing: "-0.02em",
+                }}
+              >
+                {previewNames[0]}
+              </span>
+            )}
           </div>
+          {isTwoUp && fittedPt < fontSize && (
+            <p style={{ fontSize: 10, color: "rgba(196,181,253,0.65)", marginTop: 6 }}>
+              2명/장은 반칸(15mm) 기준으로 글자가 자동 축소됩니다
+            </p>
+          )}
         </div>
 
         <button
