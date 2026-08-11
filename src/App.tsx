@@ -5,7 +5,7 @@ import { IC } from "@/components/icons"
 import { UploadZone } from "@/components/UploadZone"
 import { NameList } from "@/components/NameList"
 import { PrintPanel } from "@/components/PrintPanel"
-import { downloadLabelPdf, openLabelPdf } from "@/utils/printLabels"
+import { downloadEpd10Excel } from "@/utils/exportEpd10Excel"
 
 export default function App() {
   const [names, setNames] = useState<string[]>([])
@@ -16,7 +16,7 @@ export default function App() {
   const [query, setQuery] = useState("")
   const [fontSize, setFontSize] = useState(DEFAULT_FONT_SIZE_PT)
   const [parseStats, setParseStats] = useState<ParseStats | null>(null)
-  const [printing, setPrinting] = useState(false)
+  const [exporting, setExporting] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   const filtered = useMemo(() => {
@@ -88,39 +88,19 @@ export default function App() {
     setParseStats(null)
   }
 
-  const handleDownloadPdf = useCallback(async () => {
-    if (!names.length || printing) return
-
-    setPrinting(true)
-    setError(null)
-
+  const handleExportEpd10 = useCallback(() => {
+    if (!names.length || exporting) return
+    setExporting(true)
     try {
-      await downloadLabelPdf(names, fontSize)
+      downloadEpd10Excel(names)
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : "PDF 저장 중 오류가 발생했습니다."
+        err instanceof Error ? err.message : "엑셀 저장 중 오류가 발생했습니다."
       setError(message)
     } finally {
-      setPrinting(false)
+      setExporting(false)
     }
-  }, [names, fontSize, printing])
-
-  const handleOpenPdf = useCallback(async () => {
-    if (!names.length || printing) return
-
-    setPrinting(true)
-    setError(null)
-
-    try {
-      await openLabelPdf(names, fontSize)
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "PDF 열기 중 오류가 발생했습니다."
-      setError(message)
-    } finally {
-      setPrinting(false)
-    }
-  }, [names, fontSize, printing])
+  }, [names, exporting])
 
   return (
     <div
@@ -174,8 +154,8 @@ export default function App() {
                   초기화
                 </button>
                 <button
-                  onClick={handleDownloadPdf}
-                  disabled={printing}
+                  onClick={handleExportEpd10}
+                  disabled={exporting}
                   className="flex items-center gap-2 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all duration-300 hover:opacity-90 hover:scale-105 active:scale-95 disabled:opacity-60 disabled:scale-100"
                   style={{
                     background: "linear-gradient(135deg,#7c3aed,#6366f1)",
@@ -183,9 +163,9 @@ export default function App() {
                   }}
                 >
                   <div className="w-4 h-4">
-                    {printing ? <IC.Spinner /> : <IC.File />}
+                    <IC.File />
                   </div>
-                  {printing ? "PDF 생성 중..." : `PDF 저장 (${names.length}장)`}
+                  EPD10 엑셀 ({names.length}명)
                 </button>
               </>
             )}
@@ -248,10 +228,9 @@ export default function App() {
                 namesCount={names.length}
                 fontSize={fontSize}
                 previewName={names[0] ?? "홍길동"}
-                printing={printing}
+                exporting={exporting}
                 onFontSizeChange={setFontSize}
-                onDownloadPdf={handleDownloadPdf}
-                onOpenPdf={handleOpenPdf}
+                onExportEpd10={handleExportEpd10}
               />
             </div>
           )}

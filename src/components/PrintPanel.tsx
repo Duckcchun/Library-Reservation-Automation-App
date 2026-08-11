@@ -1,24 +1,22 @@
 import { IC } from "./icons"
-import { PRINT_TIPS } from "@/constants"
+import { EPD10_SETUP_STEPS, EPD10_PRINT_TIPS } from "@/constants"
 
 type PrintPanelProps = {
   namesCount: number
   fontSize: number
   previewName: string
-  printing: boolean
+  exporting: boolean
   onFontSizeChange: (size: number) => void
-  onDownloadPdf: () => void
-  onOpenPdf: () => void
+  onExportEpd10: () => void
 }
 
 export function PrintPanel({
   namesCount,
   fontSize,
   previewName,
-  printing,
+  exporting,
   onFontSizeChange,
-  onDownloadPdf,
-  onOpenPdf,
+  onExportEpd10,
 }: PrintPanelProps) {
   return (
     <div className="flex flex-col gap-4">
@@ -34,7 +32,7 @@ export function PrintPanel({
             라벨 인쇄
           </p>
           <p style={{ fontSize: 12, color: "rgba(196,181,253,0.8)" }} className="mt-0.5">
-            Epson LW-K600 · 12×30mm (12mm 테이프 맞춤)
+            Epson LW-K600 · Windows · EPD10
           </p>
         </div>
 
@@ -42,9 +40,11 @@ export function PrintPanel({
           className="rounded-xl px-4 py-3"
           style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }}
         >
-          <p style={{ fontSize: 11, color: "#ddd6fe", lineHeight: 1.6 }}>
-            PDF 페이지를 드라이버 <strong style={{ color: "#fff" }}>12mm 테이프</strong> 용지 크기(12×30mm)와
-            동일하게 맞춥니다. 이름은 이미지로 가운데 박혀 있어 왼쪽 정렬·여백 문제를 줄입니다.
+          <p style={{ fontSize: 11, color: "#ddd6fe", lineHeight: 1.65 }}>
+            Windows에서 PDF를 12mm 테이프로 인쇄하면 드라이버가 페이지 크기를 덮어써{" "}
+            <strong style={{ color: "#fff" }}>왼쪽 정렬·여백</strong>이 생깁니다.
+            <br />
+            Epson 공식 프로그램 <strong style={{ color: "#fff" }}>EPD10</strong>으로 인쇄하세요.
           </p>
         </div>
 
@@ -57,14 +57,14 @@ export function PrintPanel({
             <p style={{ fontSize: 11, color: "#c4b5fd" }}>총 라벨</p>
           </div>
           <div className="px-4 py-3 text-center">
-            <p style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.03em" }}>12mm</p>
-            <p style={{ fontSize: 11, color: "#c4b5fd" }}>테이프 맞춤</p>
+            <p style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.03em" }}>30mm</p>
+            <p style={{ fontSize: 11, color: "#c4b5fd" }}>라벨 길이</p>
           </div>
         </div>
 
         <div>
           <div className="flex items-center justify-between mb-2">
-            <span style={{ fontSize: 12, color: "#c4b5fd" }}>라벨 글자 크기</span>
+            <span style={{ fontSize: 12, color: "#c4b5fd" }}>EPD10 글자 크기 참고</span>
             <span
               style={{ fontSize: 12, color: "#fff", fontWeight: 600, fontFamily: "'Inter',monospace" }}
             >
@@ -80,12 +80,7 @@ export function PrintPanel({
             onChange={(e) => onFontSizeChange(Number(e.target.value))}
             className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
             style={{ accentColor: "#a78bfa" }}
-            disabled={printing}
           />
-          <div className="flex justify-between mt-1" style={{ fontSize: 10, color: "rgba(196,181,253,0.5)" }}>
-            <span>작게</span>
-            <span>크게</span>
-          </div>
           <div
             className="mt-3 rounded-xl flex items-center justify-center py-3"
             style={{
@@ -105,12 +100,15 @@ export function PrintPanel({
               {previewName}
             </span>
           </div>
+          <p style={{ fontSize: 10, color: "rgba(196,181,253,0.55)", marginTop: 6 }}>
+            글자 크기는 EPD10 템플릿에서 설정합니다
+          </p>
         </div>
 
         <button
-          onClick={onDownloadPdf}
-          disabled={printing}
-          className="w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:opacity-90 hover:scale-105 active:scale-95 transition-all duration-300 disabled:opacity-60 disabled:scale-100 disabled:cursor-wait"
+          onClick={onExportEpd10}
+          disabled={exporting}
+          className="w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:opacity-90 hover:scale-105 active:scale-95 transition-all duration-300 disabled:opacity-60 disabled:scale-100"
           style={{
             background: "#fff",
             color: "#4c1d95",
@@ -119,21 +117,9 @@ export function PrintPanel({
           }}
         >
           <div className="w-4 h-4">
-            {printing ? <IC.Spinner /> : <IC.File />}
+            <IC.File />
           </div>
-          {printing ? "PDF 생성 중..." : "PDF 저장 (권장)"}
-        </button>
-
-        <button
-          onClick={onOpenPdf}
-          disabled={printing}
-          className="w-full py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all duration-300 hover:bg-white/10 disabled:opacity-50"
-          style={{ border: "1px solid rgba(255,255,255,0.25)", color: "#ede9fe" }}
-        >
-          <div className="w-3.5 h-3.5">
-            <IC.Print />
-          </div>
-          PDF 새 탭에서 열기
+          EPD10용 엑셀 저장 ({namesCount}명)
         </button>
       </div>
 
@@ -146,19 +132,37 @@ export function PrintPanel({
           boxShadow: "0 4px 16px rgba(0,0,0,0.04)",
         }}
       >
-        <p style={{ fontSize: 12, color: "#4c1d95", fontWeight: 600 }}>인쇄 전 체크리스트</p>
+        <p style={{ fontSize: 12, color: "#4c1d95", fontWeight: 600 }}>EPD10 인쇄 순서 (최초 1회 설정)</p>
         <div className="flex flex-col gap-2">
-          {PRINT_TIPS.map((tip) => (
-            <div key={tip} className="flex items-start gap-2.5">
+          {EPD10_SETUP_STEPS.map((step, i) => (
+            <div key={step} className="flex items-start gap-2.5">
               <div
-                className="w-4 h-4 rounded-full flex items-center justify-center mt-0.5 shrink-0"
-                style={{ background: "rgba(124,58,237,0.1)", color: "#7c3aed" }}
+                className="w-5 h-5 rounded-full flex items-center justify-center shrink-0"
+                style={{ background: "rgba(124,58,237,0.12)", color: "#7c3aed", fontSize: 10, fontWeight: 700 }}
               >
-                <div className="w-2.5 h-2.5">
-                  <IC.Check />
-                </div>
+                {i + 1}
               </div>
-              <span style={{ fontSize: 12, color: "#6b21a8", lineHeight: 1.5 }}>{tip}</span>
+              <span style={{ fontSize: 12, color: "#6b21a8", lineHeight: 1.5 }}>{step}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div
+        className="rounded-2xl p-4 flex flex-col gap-3"
+        style={{
+          background: "rgba(254,242,242,0.7)",
+          border: "1px solid rgba(252,165,165,0.35)",
+        }}
+      >
+        <p style={{ fontSize: 12, color: "#991b1b", fontWeight: 600 }}>알아두세요</p>
+        <div className="flex flex-col gap-2">
+          {EPD10_PRINT_TIPS.map((tip) => (
+            <div key={tip} className="flex items-start gap-2.5">
+              <div className="w-4 h-4 shrink-0 mt-0.5" style={{ color: "#dc2626" }}>
+                <IC.Warning />
+              </div>
+              <span style={{ fontSize: 12, color: "#7f1d1d", lineHeight: 1.5 }}>{tip}</span>
             </div>
           ))}
         </div>
