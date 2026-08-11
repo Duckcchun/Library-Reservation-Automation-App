@@ -243,9 +243,7 @@ export default function App() {
             line-height: 12mm !important;
             margin: 0 !important;
             padding: 0 !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
+            display: block !important;
           }
         }
       `}</style>
