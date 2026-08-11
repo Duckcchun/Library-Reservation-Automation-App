@@ -4,6 +4,7 @@ import {
   NAMES_PER_LABEL,
   NAME_RIGHT_PADDING_MM,
   NAME_COLUMN_GAP_MM,
+  NAME_OFFSET_Y_MM,
 } from "@/constants"
 
 function chunkNames(names: string[]): string[][] {
@@ -88,6 +89,7 @@ function buildPrintHtml(pages: string[][], fontSizePt: number): string {
       width: ${LABEL_LENGTH_MM}mm;
       height: ${LABEL_TAPE_WIDTH_MM}mm;
       overflow: visible;
+      padding-top: ${NAME_OFFSET_Y_MM}mm;
     }
 
     .name {

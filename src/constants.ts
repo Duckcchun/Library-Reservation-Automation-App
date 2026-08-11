@@ -15,6 +15,8 @@ export const MAX_FONT_SIZE_PT = 44
 export const NAME_RIGHT_PADDING_MM = 4.5
 /** 2명/장일 때 좌·우 이름 사이 간격 mm */
 export const NAME_COLUMN_GAP_MM = 3
+/** 이름 세로 위치 — 아래로 내릴 mm */
+export const NAME_OFFSET_Y_MM = 0.8
 
 export const PRINTER_DPI = 180
 export const MM_TO_PT = 72 / 25.4
@@ -29,4 +31,5 @@ export const PRINT_TIPS = [
   "테이프 길이: 자동(Auto)",
   "여백(Margin): 없음",
   "라벨 사이 빈 간격은 프린터 컷/피드 여백일 수 있음",
+  "장마다 자동 컷: 웹앱 불가 → 드라이버「인쇄 후 컷」또는 EPD10",
 ] as const
