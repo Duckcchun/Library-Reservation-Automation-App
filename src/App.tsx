@@ -207,13 +207,13 @@ export default function App() {
         @media print {
           body * { visibility: hidden; }
           #print-area, #print-area * { visibility: visible; }
-          @page { margin: 0; size: 12mm auto; }
+          @page { margin: 0; size: 30mm auto; }
           #print-area { position: absolute; top: 0; left: 0; width: 100%; }
           .label-item {
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
-            width: auto !important;
+            width: 30mm !important;
             height: 12mm !important;
             background: white !important;
             page-break-after: always !important;
@@ -221,7 +221,8 @@ export default function App() {
             page-break-inside: avoid !important;
             break-inside: avoid !important;
             position: relative !important;
-            padding: 0 1mm !important;
+            margin: 0 !important;
+            padding: 0 !important;
           }
           .label-item:last-child {
             page-break-after: auto !important;
@@ -229,15 +230,22 @@ export default function App() {
           }
           .label-name {
             font-weight: 700 !important;
+            font-size: 28pt !important;
             color: black !important;
             letter-spacing: -0.02em !important;
             text-align: center !important;
             word-break: keep-all !important;
             font-family: 'Noto Sans KR', sans-serif !important;
-            width: auto !important;
-            overflow: visible !important;
+            width: 30mm !important;
+            height: 12mm !important;
+            overflow: hidden !important;
             white-space: nowrap !important;
             line-height: 1.1 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
           }
         }
       `}</style>
