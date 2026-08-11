@@ -19,7 +19,8 @@ export const NAMES_PER_LABEL = 2
 
 export const PRINT_TIPS = [
   "인쇄 대화상자에서 Epson LW-K600 선택",
-  "배율: 100% (페이지에 맞춤 끄기)",
+  "배율: 100% (페이지에 맞춤 반드시 끄기)",
+  "글자 크기는 슬라이더 pt 그대로 인쇄됩니다",
   "테이프 길이: 자동(Auto)",
   "여백(Margin): 없음",
 ] as const
