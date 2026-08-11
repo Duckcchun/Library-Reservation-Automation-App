@@ -63,10 +63,11 @@ export async function generateLabelPdf(
     const page = pdfDoc.addPage([pageWidth, pageHeight])
     const size = fitFontSize(name, font, fontSizePt, maxTextWidth)
     const textWidth = font.widthOfTextAtSize(name, size)
-    const textHeight = font.heightAtSize(size)
 
     const x = (pageWidth - textWidth) / 2
-    const y = (pageHeight - textHeight) / 2 + font.descenderAtSize(size)
+    // drawText의 y는 baseline 기준 — heightAtSize로 세로 중앙 계산
+    const textHeight = font.heightAtSize(size, { descender: false })
+    const y = (pageHeight - textHeight) / 2
 
     page.drawText(name, {
       x,
