@@ -5,7 +5,7 @@ import { IC } from "@/components/icons"
 import { UploadZone } from "@/components/UploadZone"
 import { NameList } from "@/components/NameList"
 import { PrintPanel } from "@/components/PrintPanel"
-import { downloadEpd10Excel } from "@/utils/exportEpd10Excel"
+import { downloadLabelPdf } from "@/utils/printLabels"
 
 export default function App() {
   const [names, setNames] = useState<string[]>([])
@@ -88,19 +88,22 @@ export default function App() {
     setParseStats(null)
   }
 
-  const handleExportEpd10 = useCallback(() => {
+  const handleDownloadPdf = useCallback(async () => {
     if (!names.length || exporting) return
+
     setExporting(true)
+    setError(null)
+
     try {
-      downloadEpd10Excel(names)
+      await downloadLabelPdf(names, fontSize)
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : "엑셀 저장 중 오류가 발생했습니다."
+        err instanceof Error ? err.message : "PDF 저장 중 오류가 발생했습니다."
       setError(message)
     } finally {
       setExporting(false)
     }
-  }, [names, exporting])
+  }, [names, fontSize, exporting])
 
   return (
     <div
@@ -154,7 +157,7 @@ export default function App() {
                   초기화
                 </button>
                 <button
-                  onClick={handleExportEpd10}
+                  onClick={handleDownloadPdf}
                   disabled={exporting}
                   className="flex items-center gap-2 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all duration-300 hover:opacity-90 hover:scale-105 active:scale-95 disabled:opacity-60 disabled:scale-100"
                   style={{
@@ -163,9 +166,9 @@ export default function App() {
                   }}
                 >
                   <div className="w-4 h-4">
-                    <IC.File />
+                    {exporting ? <IC.Spinner /> : <IC.File />}
                   </div>
-                  EPD10 엑셀 ({names.length}명)
+                  {exporting ? "PDF 생성 중..." : `PDF 저장 (${names.length}장)`}
                 </button>
               </>
             )}
@@ -230,7 +233,7 @@ export default function App() {
                 previewName={names[0] ?? "홍길동"}
                 exporting={exporting}
                 onFontSizeChange={setFontSize}
-                onExportEpd10={handleExportEpd10}
+                onDownloadPdf={handleDownloadPdf}
               />
             </div>
           )}

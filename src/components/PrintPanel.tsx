@@ -1,5 +1,5 @@
 import { IC } from "./icons"
-import { EPD10_SETUP_STEPS, EPD10_PRINT_TIPS } from "@/constants"
+import { PRINT_TIPS, MAX_FONT_SIZE_PT, MIN_FONT_SIZE_PT } from "@/constants"
 
 type PrintPanelProps = {
   namesCount: number
@@ -7,7 +7,7 @@ type PrintPanelProps = {
   previewName: string
   exporting: boolean
   onFontSizeChange: (size: number) => void
-  onExportEpd10: () => void
+  onDownloadPdf: () => void
 }
 
 export function PrintPanel({
@@ -16,7 +16,7 @@ export function PrintPanel({
   previewName,
   exporting,
   onFontSizeChange,
-  onExportEpd10,
+  onDownloadPdf,
 }: PrintPanelProps) {
   return (
     <div className="flex flex-col gap-4">
@@ -29,22 +29,10 @@ export function PrintPanel({
       >
         <div>
           <p className="font-bold" style={{ fontSize: 16 }}>
-            라벨 인쇄
+            라벨 PDF
           </p>
           <p style={{ fontSize: 12, color: "rgba(196,181,253,0.8)" }} className="mt-0.5">
-            Epson LW-K600 · Windows · EPD10
-          </p>
-        </div>
-
-        <div
-          className="rounded-xl px-4 py-3"
-          style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }}
-        >
-          <p style={{ fontSize: 11, color: "#ddd6fe", lineHeight: 1.65 }}>
-            Windows에서 PDF를 12mm 테이프로 인쇄하면 드라이버가 페이지 크기를 덮어써{" "}
-            <strong style={{ color: "#fff" }}>왼쪽 정렬·여백</strong>이 생깁니다.
-            <br />
-            Epson 공식 프로그램 <strong style={{ color: "#fff" }}>EPD10</strong>으로 인쇄하세요.
+            30×12mm · {namesCount}장
           </p>
         </div>
 
@@ -64,7 +52,7 @@ export function PrintPanel({
 
         <div>
           <div className="flex items-center justify-between mb-2">
-            <span style={{ fontSize: 12, color: "#c4b5fd" }}>EPD10 글자 크기 참고</span>
+            <span style={{ fontSize: 12, color: "#c4b5fd" }}>글자 크기</span>
             <span
               style={{ fontSize: 12, color: "#fff", fontWeight: 600, fontFamily: "'Inter',monospace" }}
             >
@@ -73,14 +61,19 @@ export function PrintPanel({
           </div>
           <input
             type="range"
-            min={12}
-            max={36}
+            min={MIN_FONT_SIZE_PT}
+            max={MAX_FONT_SIZE_PT}
             step={1}
             value={fontSize}
             onChange={(e) => onFontSizeChange(Number(e.target.value))}
             className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
             style={{ accentColor: "#a78bfa" }}
+            disabled={exporting}
           />
+          <div className="flex justify-between mt-1" style={{ fontSize: 10, color: "rgba(196,181,253,0.5)" }}>
+            <span>{MIN_FONT_SIZE_PT}pt</span>
+            <span>{MAX_FONT_SIZE_PT}pt</span>
+          </div>
           <div
             className="mt-3 rounded-xl flex items-center justify-center py-3"
             style={{
@@ -100,15 +93,12 @@ export function PrintPanel({
               {previewName}
             </span>
           </div>
-          <p style={{ fontSize: 10, color: "rgba(196,181,253,0.55)", marginTop: 6 }}>
-            글자 크기는 EPD10 템플릿에서 설정합니다
-          </p>
         </div>
 
         <button
-          onClick={onExportEpd10}
+          onClick={onDownloadPdf}
           disabled={exporting}
-          className="w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:opacity-90 hover:scale-105 active:scale-95 transition-all duration-300 disabled:opacity-60 disabled:scale-100"
+          className="w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:opacity-90 hover:scale-105 active:scale-95 transition-all duration-300 disabled:opacity-60 disabled:scale-100 disabled:cursor-wait"
           style={{
             background: "#fff",
             color: "#4c1d95",
@@ -117,9 +107,9 @@ export function PrintPanel({
           }}
         >
           <div className="w-4 h-4">
-            <IC.File />
+            {exporting ? <IC.Spinner /> : <IC.File />}
           </div>
-          EPD10용 엑셀 저장 ({namesCount}명)
+          {exporting ? "PDF 생성 중..." : `PDF 저장 (${namesCount}장)`}
         </button>
       </div>
 
@@ -132,37 +122,19 @@ export function PrintPanel({
           boxShadow: "0 4px 16px rgba(0,0,0,0.04)",
         }}
       >
-        <p style={{ fontSize: 12, color: "#4c1d95", fontWeight: 600 }}>EPD10 인쇄 순서 (최초 1회 설정)</p>
+        <p style={{ fontSize: 12, color: "#4c1d95", fontWeight: 600 }}>인쇄 팁</p>
         <div className="flex flex-col gap-2">
-          {EPD10_SETUP_STEPS.map((step, i) => (
-            <div key={step} className="flex items-start gap-2.5">
-              <div
-                className="w-5 h-5 rounded-full flex items-center justify-center shrink-0"
-                style={{ background: "rgba(124,58,237,0.12)", color: "#7c3aed", fontSize: 10, fontWeight: 700 }}
-              >
-                {i + 1}
-              </div>
-              <span style={{ fontSize: 12, color: "#6b21a8", lineHeight: 1.5 }}>{step}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div
-        className="rounded-2xl p-4 flex flex-col gap-3"
-        style={{
-          background: "rgba(254,242,242,0.7)",
-          border: "1px solid rgba(252,165,165,0.35)",
-        }}
-      >
-        <p style={{ fontSize: 12, color: "#991b1b", fontWeight: 600 }}>알아두세요</p>
-        <div className="flex flex-col gap-2">
-          {EPD10_PRINT_TIPS.map((tip) => (
+          {PRINT_TIPS.map((tip) => (
             <div key={tip} className="flex items-start gap-2.5">
-              <div className="w-4 h-4 shrink-0 mt-0.5" style={{ color: "#dc2626" }}>
-                <IC.Warning />
+              <div
+                className="w-4 h-4 rounded-full flex items-center justify-center mt-0.5 shrink-0"
+                style={{ background: "rgba(124,58,237,0.1)", color: "#7c3aed" }}
+              >
+                <div className="w-2.5 h-2.5">
+                  <IC.Check />
+                </div>
               </div>
-              <span style={{ fontSize: 12, color: "#7f1d1d", lineHeight: 1.5 }}>{tip}</span>
+              <span style={{ fontSize: 12, color: "#6b21a8", lineHeight: 1.5 }}>{tip}</span>
             </div>
           ))}
         </div>
