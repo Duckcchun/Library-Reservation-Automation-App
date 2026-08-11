@@ -28,9 +28,8 @@ export function countLabelPages(namesCount: number): number {
 const FONT_FAMILY = '"Noto Sans KR", sans-serif'
 const FONT_WEIGHT = 700
 
-async function ensureFontReady(): Promise<void> {
-  await document.fonts.load(`${FONT_WEIGHT} 12px ${FONT_FAMILY}`)
-  await document.fonts.load(`${FONT_WEIGHT} 48px ${FONT_FAMILY}`)
+async function ensureFontReady(fontSizePx: number): Promise<void> {
+  await document.fonts.load(`${FONT_WEIGHT} ${fontSizePx}px ${FONT_FAMILY}`)
   await document.fonts.ready
 }
 
@@ -38,86 +37,24 @@ function setCanvasFont(ctx: CanvasRenderingContext2D, fontSizePx: number): void 
   ctx.font = `${FONT_WEIGHT} ${fontSizePx}px ${FONT_FAMILY}`
 }
 
-function measureTextBlock(
-  ctx: CanvasRenderingContext2D,
-  text: string,
-  fontSizePx: number,
-): { width: number; height: number } {
-  setCanvasFont(ctx, fontSizePx)
-  const metrics = ctx.measureText(text)
-  const width = metrics.width
-  const height =
-    (metrics.actualBoundingBoxAscent ?? fontSizePx * 0.82) +
-    (metrics.actualBoundingBoxDescent ?? fontSizePx * 0.18)
-  return { width, height }
-}
-
-/** 슬롯(1명 분량 영역) 안에 들어가는 최대 px 크기 */
-function fitFontSizePx(
-  ctx: CanvasRenderingContext2D,
-  names: string[],
-  slotWidthPx: number,
-  maxHeightPx: number,
-  requestedPx: number,
-  minPx: number,
-): number {
-  let fontSizePx = requestedPx
-
-  while (fontSizePx >= minPx) {
-    const fitsAll = names.every((name) => {
-      const { width, height } = measureTextBlock(ctx, name, fontSizePx)
-      return width <= slotWidthPx && height <= maxHeightPx
-    })
-    if (fitsAll) return fontSizePx
-    fontSizePx -= 0.5
-  }
-
-  return minPx
-}
-
 type LabelLayout = {
   fontSizePx: number
   slots: Array<{ name: string; x: number; width: number }>
 }
 
-function buildLabelLayout(
-  ctx: CanvasRenderingContext2D,
-  namesOnLabel: string[],
-  pxW: number,
-  pxH: number,
-  fontSizePt: number,
-): LabelLayout {
+function buildLabelLayout(namesOnLabel: string[], pxW: number, fontSizePt: number): LabelLayout {
   const padding = Math.round(pxW * 0.04)
-  const maxHeightPx = pxH * 0.9
-  const minFontSizePx = ptToPx(8)
-  const requestedPx = ptToPx(fontSizePt)
+  const fontSizePx = ptToPx(fontSizePt)
 
   if (namesOnLabel.length === 1) {
-    const slotWidthPx = pxW - padding * 2
-    const fontSizePx = fitFontSizePx(
-      ctx,
-      namesOnLabel,
-      slotWidthPx,
-      maxHeightPx,
-      requestedPx,
-      minFontSizePx,
-    )
     return {
       fontSizePx,
-      slots: [{ name: namesOnLabel[0], x: padding, width: slotWidthPx }],
+      slots: [{ name: namesOnLabel[0], x: padding, width: pxW - padding * 2 }],
     }
   }
 
   const halfW = pxW / 2
   const slotWidthPx = halfW - padding * 2
-  const fontSizePx = fitFontSizePx(
-    ctx,
-    namesOnLabel,
-    slotWidthPx,
-    maxHeightPx,
-    requestedPx,
-    minFontSizePx,
-  )
 
   return {
     fontSizePx,
@@ -129,7 +66,7 @@ function buildLabelLayout(
   }
 }
 
-/** 30×12mm 라벨 PNG — 최대 2명, 좌우 반칸씩 왼쪽 정렬 */
+/** 30×12mm 라벨 PNG — 최대 2명, 슬라이더 pt 그대로 사용 */
 async function renderLabelDataUrl(namesOnLabel: string[], fontSizePt: number): Promise<string> {
   const pxW = mmToPx(LABEL_LENGTH_MM)
   const pxH = mmToPx(LABEL_TAPE_WIDTH_MM)
@@ -143,9 +80,8 @@ async function renderLabelDataUrl(namesOnLabel: string[], fontSizePt: number): P
   ctx.fillStyle = "#ffffff"
   ctx.fillRect(0, 0, pxW, pxH)
 
-  await ensureFontReady()
-
-  const layout = buildLabelLayout(ctx, namesOnLabel, pxW, pxH, fontSizePt)
+  const layout = buildLabelLayout(namesOnLabel, pxW, fontSizePt)
+  await ensureFontReady(layout.fontSizePx)
 
   ctx.fillStyle = "#000000"
   setCanvasFont(ctx, layout.fontSizePx)
@@ -162,25 +98,6 @@ async function renderLabelDataUrl(namesOnLabel: string[], fontSizePt: number): P
   }
 
   return canvas.toDataURL("image/png")
-}
-
-/** UI 미리보기용 — 실제 인쇄와 같은 fit 결과 pt */
-export async function getPreviewFontSizePt(
-  namesOnLabel: string[],
-  fontSizePt: number,
-): Promise<number> {
-  const pxW = mmToPx(LABEL_LENGTH_MM)
-  const pxH = mmToPx(LABEL_TAPE_WIDTH_MM)
-
-  const canvas = document.createElement("canvas")
-  canvas.width = pxW
-  canvas.height = pxH
-  const ctx = canvas.getContext("2d")
-  if (!ctx) return fontSizePt
-
-  await ensureFontReady()
-  const layout = buildLabelLayout(ctx, namesOnLabel, pxW, pxH, fontSizePt)
-  return Math.round((layout.fontSizePx / PRINTER_DPI) * 72)
 }
 
 function buildPrintHtml(pages: string[]): string {

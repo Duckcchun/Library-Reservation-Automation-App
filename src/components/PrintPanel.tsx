@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react"
 import { IC } from "./icons"
 import { PRINT_TIPS, MAX_FONT_SIZE_PT, MIN_FONT_SIZE_PT, NAMES_PER_LABEL } from "@/constants"
-import { countLabelPages, getPreviewFontSizePt } from "@/utils/printLabels"
+import { countLabelPages } from "@/utils/printLabels"
 
 type PrintPanelProps = {
   namesCount: number
@@ -21,20 +20,6 @@ export function PrintPanel({
   onPrint,
 }: PrintPanelProps) {
   const pageCount = countLabelPages(namesCount)
-  const [fittedPt, setFittedPt] = useState(fontSize)
-
-  useEffect(() => {
-    let cancelled = false
-
-    void getPreviewFontSizePt(previewNames, fontSize).then((pt) => {
-      if (!cancelled) setFittedPt(pt)
-    })
-
-    return () => {
-      cancelled = true
-    }
-  }, [previewNames, fontSize])
-
   const isTwoUp = previewNames.length >= 2
 
   return (
@@ -76,9 +61,6 @@ export function PrintPanel({
               style={{ fontSize: 12, color: "#fff", fontWeight: 600, fontFamily: "'Inter',monospace" }}
             >
               {fontSize}pt
-              {fittedPt < fontSize && (
-                <span style={{ color: "#c4b5fd", fontWeight: 500 }}> → {fittedPt}pt</span>
-              )}
             </span>
           </div>
           <input
@@ -115,7 +97,7 @@ export function PrintPanel({
                 >
                   <span
                     style={{
-                      fontSize: Math.round(fittedPt * 0.84),
+                      fontSize: Math.round(fontSize * 0.84),
                       fontWeight: 700,
                       color: "#fff",
                       letterSpacing: "-0.02em",
@@ -130,7 +112,7 @@ export function PrintPanel({
               <span
                 className="px-2"
                 style={{
-                  fontSize: Math.round(fittedPt * 0.84),
+                  fontSize: Math.round(fontSize * 0.84),
                   fontWeight: 700,
                   color: "#fff",
                   letterSpacing: "-0.02em",
@@ -140,11 +122,6 @@ export function PrintPanel({
               </span>
             )}
           </div>
-          {isTwoUp && fittedPt < fontSize && (
-            <p style={{ fontSize: 10, color: "rgba(196,181,253,0.65)", marginTop: 6 }}>
-              2명/장은 반칸(15mm) 기준으로 글자가 자동 축소됩니다
-            </p>
-          )}
         </div>
 
         <button
