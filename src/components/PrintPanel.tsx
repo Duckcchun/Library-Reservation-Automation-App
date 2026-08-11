@@ -34,7 +34,7 @@ export function PrintPanel({
             라벨 인쇄
           </p>
           <p style={{ fontSize: 12, color: "rgba(196,181,253,0.8)" }} className="mt-0.5">
-            Epson LW-K600 · 30×12mm PDF
+            Epson LW-K600 · 12×30mm (12mm 테이프 맞춤)
           </p>
         </div>
 
@@ -43,11 +43,8 @@ export function PrintPanel({
           style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }}
         >
           <p style={{ fontSize: 11, color: "#ddd6fe", lineHeight: 1.6 }}>
-            PDF 파일 자체는 정상입니다. 인쇄 대화상자에서{" "}
-            <strong style={{ color: "#fff" }}>&apos;12mm 테이프&apos; 용지 프리셋</strong>을
-            고르면 드라이버가 페이지 크기를 덮어써서 왼쪽 정렬·여백이 생깁니다.
-            <br />
-            <strong style={{ color: "#fff" }}>PDF 저장</strong> 후 Adobe/미리보기에서 인쇄하세요.
+            PDF 페이지를 드라이버 <strong style={{ color: "#fff" }}>12mm 테이프</strong> 용지 크기(12×30mm)와
+            동일하게 맞춥니다. 이름은 이미지로 가운데 박혀 있어 왼쪽 정렬·여백 문제를 줄입니다.
           </p>
         </div>
 
@@ -60,8 +57,8 @@ export function PrintPanel({
             <p style={{ fontSize: 11, color: "#c4b5fd" }}>총 라벨</p>
           </div>
           <div className="px-4 py-3 text-center">
-            <p style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.03em" }}>30mm</p>
-            <p style={{ fontSize: 11, color: "#c4b5fd" }}>고정 길이</p>
+            <p style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.03em" }}>12mm</p>
+            <p style={{ fontSize: 11, color: "#c4b5fd" }}>테이프 맞춤</p>
           </div>
         </div>
 
