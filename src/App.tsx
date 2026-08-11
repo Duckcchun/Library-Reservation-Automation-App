@@ -207,7 +207,7 @@ export default function App() {
         @media print {
           body * { visibility: hidden; }
           #print-area, #print-area * { visibility: visible; }
-          @page { margin: 0; size: 30mm auto; }
+          @page { margin: 0; size: 30mm 12mm; }
           #print-area { position: absolute; top: 0; left: 0; width: 100%; }
           .label-item {
             display: flex !important;
@@ -230,14 +230,14 @@ export default function App() {
           }
           .label-name {
             font-weight: 700 !important;
-            font-size: 28pt !important;
+            font-size: 24pt !important;
             color: black !important;
             letter-spacing: -0.02em !important;
             text-align: center !important;
             word-break: keep-all !important;
             font-family: 'Noto Sans KR', sans-serif !important;
-            width: 100% !important;
-            height: 100% !important;
+            width: 30mm !important;
+            height: 12mm !important;
             overflow: hidden !important;
             white-space: nowrap !important;
             line-height: 12mm !important;
