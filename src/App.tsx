@@ -3,7 +3,7 @@ import * as XLSX from "xlsx"
 
 // ── 파싱 ─────────────────────────────────────────────────────────────────────
 
-async function parseNames(file: File): Promise<string[]> {
+async function parseNames(file: File): Promise<{ names: string[]; stats: { total: number; valid: number; filtered: number } }> {
   const data = await file.arrayBuffer()
   const wb = XLSX.read(new Uint8Array(data), { type: "array" })
   const ws = wb.Sheets[wb.SheetNames[0]]
@@ -19,11 +19,56 @@ async function parseNames(file: File): Promise<string[]> {
   const headers = raw[headerRowIdx].map((h) => String(h ?? "").trim())
   const colIdx = headers.indexOf("예약자")
 
-  return raw
+  // 한글 이름 패턴 (2-4자 한글)
+  const koreanNamePattern = /^[가-힣]{2,4}$/
+  // 영어 이름 패턴 (영문자와 공백만 허용)
+  const englishNamePattern = /^[a-zA-Z\s]{2,30}$/
+
+  const totalRows = raw.length - headerRowIdx - 1
+  const processedRows: string[] = []
+  const filteredNames: string[] = []
+  
+  raw
     .slice(headerRowIdx + 1)
     .map((row) => String(row[colIdx] ?? "").trim())
-    .filter(Boolean)
-    .sort((a, b) => a.localeCompare(b, "ko"))
+    .forEach((name) => {
+      // 빈 값 필터링
+      if (!name) return
+      
+      processedRows.push(name)
+      
+      // 한글 또는 영어 이름 패턴 검증
+      if (!koreanNamePattern.test(name) && !englishNamePattern.test(name)) {
+        console.log(`필터링된 이름: "${name}" (이름 패턴 불일치)`)
+        return
+      }
+      
+      filteredNames.push(name)
+    })
+
+  const stats = {
+    total: processedRows.length,
+    valid: filteredNames.length,
+    filtered: processedRows.length - filteredNames.length
+  }
+
+  console.log(`파싱 통계: 총 ${stats.total}개 행 중 ${stats.valid}개 유효, ${stats.filtered}개 필터링됨`)
+  
+  // 한글 이름과 영어 이름 분리
+  const koreanNames = filteredNames.filter(name => koreanNamePattern.test(name))
+  const englishNames = filteredNames.filter(name => englishNamePattern.test(name))
+  
+  // 각각 정렬
+  koreanNames.sort((a, b) => a.localeCompare(b, "ko"))
+  englishNames.sort((a, b) => a.localeCompare(b, "en"))
+  
+  // 한글 이름 먼저, 영어 이름 나중에 합치기
+  const sortedNames = [...koreanNames, ...englishNames]
+  
+  return {
+    names: sortedNames,
+    stats
+  }
 }
 
 // ── 아이콘 ────────────────────────────────────────────────────────────────────
@@ -87,7 +132,8 @@ export default function App() {
   const [fileName, setFileName] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [query, setQuery] = useState("")
-  const [fontSize, setFontSize] = useState(48) // pt
+  const [fontSize, setFontSize] = useState(20) // pt
+  const [parseStats, setParseStats] = useState<{ total: number; valid: number; filtered: number } | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
   // ── 검색 필터 ──────────────────────────────────────────────────────────────
@@ -120,12 +166,14 @@ export default function App() {
     setLoading(true)
     setFileName(file.name)
     try {
-      const extracted = await parseNames(file)
-      setNames(extracted)
+      const result = await parseNames(file)
+      setNames(result.names)
+      setParseStats(result.stats)
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "파일 처리 중 오류가 발생했습니다."
       setError(errorMessage)
       setFileName(null)
+      setParseStats(null)
     } finally {
       setLoading(false)
     }
@@ -147,7 +195,7 @@ export default function App() {
     setNames((prev) => prev.filter((_, idx) => idx !== i))
 
   const reset = () => {
-    setNames([]); setFileName(null); setError(null); setQuery("")
+    setNames([]); setFileName(null); setError(null); setQuery(""); setParseStats(null)
   }
 
   const handlePrint = () => window.print()
@@ -159,19 +207,21 @@ export default function App() {
         @media print {
           body * { visibility: hidden; }
           #print-area, #print-area * { visibility: visible; }
-          @page { margin: 0; size: auto; }
+          @page { margin: 0; size: 12mm auto; }
           #print-area { position: absolute; top: 0; left: 0; width: 100%; }
           .label-item {
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
-            width: 100% !important;
-            height: 100vh !important;
+            width: auto !important;
+            height: 12mm !important;
+            background: white !important;
             page-break-after: always !important;
             break-after: page !important;
             page-break-inside: avoid !important;
             break-inside: avoid !important;
             position: relative !important;
+            padding: 0 1mm !important;
           }
           .label-item:last-child {
             page-break-after: auto !important;
@@ -179,11 +229,15 @@ export default function App() {
           }
           .label-name {
             font-weight: 700 !important;
-            color: #000 !important;
+            color: black !important;
             letter-spacing: -0.02em !important;
             text-align: center !important;
             word-break: keep-all !important;
             font-family: 'Noto Sans KR', sans-serif !important;
+            width: auto !important;
+            overflow: visible !important;
+            white-space: nowrap !important;
+            line-height: 1.1 !important;
           }
         }
       `}</style>
@@ -282,6 +336,13 @@ export default function App() {
                     style={{ background: "linear-gradient(135deg,#7c3aed,#6366f1)", fontSize: 12 }}>
                     {names.length}명 추출 완료
                   </span>
+                  {parseStats && parseStats.filtered > 0 && (
+                    <span className="flex items-center gap-1 px-3 py-1.5 rounded-full font-semibold"
+                      style={{ background: "rgba(245,158,11,0.12)", color: "#d97706", fontSize: 12 }}>
+                      <div className="w-3.5 h-3.5"><IC.Warning /></div>
+                      {parseStats.filtered}개 필터링됨
+                    </span>
+                  )}
                   {duplicates.size > 0 && (
                     <span className="flex items-center gap-1 px-3 py-1.5 rounded-full font-semibold"
                       style={{ background: "rgba(245,158,11,0.12)", color: "#d97706", fontSize: 12 }}>
@@ -446,7 +507,7 @@ export default function App() {
                       <span style={{ fontSize: 12, color: "#fff", fontWeight: 600, fontFamily: "'Inter',monospace" }}>{fontSize}pt</span>
                     </div>
                     <input
-                      type="range" min={24} max={80} step={2} value={fontSize}
+                      type="range" min={12} max={36} step={1} value={fontSize}
                       onChange={(e) => setFontSize(Number(e.target.value))}
                       className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
                       style={{ accentColor: "#a78bfa" }}
@@ -457,7 +518,7 @@ export default function App() {
                     {/* 미리보기 */}
                     <div className="mt-3 rounded-xl flex items-center justify-center py-3"
                       style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)", minHeight: 56 }}>
-                      <span style={{ fontSize: Math.round(fontSize * 0.42), fontWeight: 700, color: "#fff", letterSpacing: "-0.02em" }}>
+                      <span style={{ fontSize: Math.round(fontSize * 0.84), fontWeight: 700, color: "#fff", letterSpacing: "-0.02em" }}>
                         {names[0] ?? "홍길동"}
                       </span>
                     </div>
@@ -478,7 +539,7 @@ export default function App() {
                   <div className="flex flex-col gap-2">
                     {[
                       "프린터: Epson LW-K600 선택",
-                      "용지 크기: 테이프 폭에 맞게 설정",
+                      "용지 방향: 가로 모드 (Landscape)",
                       "여백(Margin): 없음",
                       "배경 그래픽 인쇄: 해제",
                     ].map((tip, i) => (
