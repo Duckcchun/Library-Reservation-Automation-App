@@ -236,11 +236,11 @@ export default function App() {
             text-align: center !important;
             word-break: keep-all !important;
             font-family: 'Noto Sans KR', sans-serif !important;
-            width: 30mm !important;
-            height: 12mm !important;
+            width: 100% !important;
+            height: 100% !important;
             overflow: hidden !important;
             white-space: nowrap !important;
-            line-height: 1.1 !important;
+            line-height: 12mm !important;
             margin: 0 !important;
             padding: 0 !important;
             display: flex !important;
