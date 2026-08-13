@@ -7,7 +7,7 @@ export const LABEL_LENGTH_MM = 30
 /** 테이프 폭 (세로) mm */
 export const LABEL_TAPE_WIDTH_MM = 12
 
-export const DEFAULT_FONT_SIZE_PT = 28
+export const DEFAULT_FONT_SIZE_PT = 33
 export const MIN_FONT_SIZE_PT = 12
 export const MAX_FONT_SIZE_PT = 44
 
