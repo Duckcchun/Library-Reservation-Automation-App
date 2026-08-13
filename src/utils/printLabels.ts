@@ -2,6 +2,7 @@ import {
   LABEL_LENGTH_MM,
   LABEL_TAPE_WIDTH_MM,
   NAMES_PER_LABEL,
+  NAME_LEFT_PADDING_MM,
   NAME_RIGHT_PADDING_MM,
   NAME_COLUMN_GAP_MM,
   NAME_OFFSET_Y_MM,
@@ -105,7 +106,7 @@ function buildPrintHtml(pages: string[][], fontSizePt: number): string {
     .label-single {
       display: flex;
       align-items: center;
-      padding-left: 1mm;
+      padding-left: ${NAME_LEFT_PADDING_MM}mm;
     }
 
     .label-single .name {
@@ -120,7 +121,7 @@ function buildPrintHtml(pages: string[][], fontSizePt: number): string {
     }
 
     .label-pair .name {
-      padding-left: 1mm;
+      padding-left: ${NAME_LEFT_PADDING_MM}mm;
       padding-right: ${NAME_RIGHT_PADDING_MM}mm;
     }
   </style>
