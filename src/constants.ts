@@ -12,7 +12,7 @@ export const MIN_FONT_SIZE_PT = 12
 export const MAX_FONT_SIZE_PT = 44
 
 /** 이름 왼쪽 여백 mm */
-export const NAME_LEFT_PADDING_MM = 2.0
+export const NAME_LEFT_PADDING_MM = 1.2
 /** 2명/장일 때 이름 오른쪽 여백 mm */
 export const NAME_RIGHT_PADDING_MM = 9
 /** 2명/장일 때 좌·우 이름 사이 간격 mm */
