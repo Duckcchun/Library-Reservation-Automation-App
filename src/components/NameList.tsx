@@ -1,12 +1,14 @@
 import { IC } from "./icons"
+import type { LibraryInfo } from "@/utils/parseNames"
+import { getLibraryColor, normalizeLibraryName } from "@/constants/library"
 
-type NameEntry = {
-  name: string
+type LibraryEntry = {
+  lib: LibraryInfo
   index: number
 }
 
 type NameListProps = {
-  filtered: NameEntry[]
+  filtered: LibraryEntry[]
   totalCount: number
   query: string
   duplicates: Set<string>
@@ -42,7 +44,7 @@ export function NameList({
         <span style={{ fontSize: 13, color: "#4c1d95" }} className="font-semibold">
           회원 명단
           <span style={{ color: "#a78bfa", fontWeight: 400 }} className="ml-1.5">
-            가나다순
+            도서관순
           </span>
         </span>
         <div className="flex items-center gap-2">
@@ -71,7 +73,7 @@ export function NameList({
           <input
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
-            placeholder="이름 검색..."
+            placeholder="이름 또는 도서관 검색..."
             style={{
               fontSize: 13,
               color: "#1e1b4b",
@@ -97,14 +99,17 @@ export function NameList({
         <div className="overflow-y-auto" style={{ maxHeight: 380 }}>
           {filtered.length === 0 ? (
             <p className="text-center py-8" style={{ fontSize: 13, color: "#c4b5fd" }}>
-              &quot;{query}&quot;에 해당하는 이름이 없습니다
+              &quot;{query}&quot;에 해당하는 항목이 없습니다
             </p>
           ) : (
-            filtered.map(({ name, index }, i) => {
-              const isDup = duplicates.has(name)
+            filtered.map(({ lib, index }, i) => {
+              const isDup = duplicates.has(lib.user)
+              const normalizedLibrary = normalizeLibraryName(lib.name)
+              const libraryColor = getLibraryColor(normalizedLibrary)
+              
               return (
                 <div
-                  key={`${index}-${name}`}
+                  key={`${index}-${lib.user}`}
                   className="group flex items-center gap-3 px-5 py-3 transition-all duration-300 hover:bg-purple-50/50 hover:translate-x-1"
                   style={{ borderBottom: "1px solid rgba(139,92,246,0.06)" }}
                 >
@@ -121,9 +126,21 @@ export function NameList({
                   >
                     {i + 1}
                   </span>
-                  <span style={{ fontSize: 14, color: "#1e1b4b", fontWeight: 500 }} className="flex-1">
-                    {name}
-                  </span>
+                  <div className="flex-1 flex flex-col">
+                    <span style={{ fontSize: 14, color: "#1e1b4b", fontWeight: 500 }}>
+                      {lib.user}
+                    </span>
+                    <span 
+                      style={{ 
+                        fontSize: 11, 
+                        color: libraryColor, 
+                        fontWeight: 600,
+                        marginTop: 2
+                      }}
+                    >
+                      {normalizedLibrary}
+                    </span>
+                  </div>
                   {isDup && (
                     <span
                       className="flex items-center gap-1 px-2 py-0.5 rounded-full"

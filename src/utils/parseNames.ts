@@ -6,6 +6,11 @@ export type ParseStats = {
   filtered: number
 }
 
+export type LibraryInfo = {
+  name: string
+  user: string
+}
+
 const KOREAN_NAME_PATTERN = /^[가-힣]{2,4}$/
 const ENGLISH_NAME_PATTERN = /^[a-zA-Z\s]{2,30}$/
 
@@ -15,7 +20,7 @@ function isValidName(name: string): boolean {
 
 export async function parseNames(
   file: File,
-): Promise<{ names: string[]; stats: ParseStats }> {
+): Promise<{ libraries: LibraryInfo[]; stats: ParseStats }> {
   const data = await file.arrayBuffer()
   const wb = XLSX.read(new Uint8Array(data), { type: "array" })
   const ws = wb.Sheets[wb.SheetNames[0]]
@@ -23,53 +28,64 @@ export async function parseNames(
 
   if (!raw.length) throw new Error("시트에 데이터가 없습니다.")
 
+  // '이용자명' 헤더가 있는 행을 찾음
   const headerRowIdx = raw.findIndex((row) =>
-    row.some((cell) => String(cell ?? "").trim() === "예약자"),
+    row.some((cell) => String(cell ?? "").trim() === "이용자명"),
   )
   if (headerRowIdx === -1) {
-    throw new Error('"예약자" 열을 찾을 수 없습니다. 파일 형식을 확인해 주세요.')
+    throw new Error('"이용자명" 열을 찾을 수 없습니다. 파일 형식을 확인해 주세요.')
   }
 
   const headers = raw[headerRowIdx].map((h) => String(h ?? "").trim())
-  const colIdx = headers.indexOf("예약자")
+  const userColIdx = headers.indexOf("이용자명")
+  const libraryColIdx = headers.indexOf("요청도서관")
 
-  const processedRows: string[] = []
-  const filteredNames: string[] = []
+  if (libraryColIdx === -1) {
+    throw new Error('"요청도서관" 열을 찾을 수 없습니다. 파일 형식을 확인해 주세요.')
+  }
+
+  const processedRows: LibraryInfo[] = []
+  const filteredLibraries: LibraryInfo[] = []
 
   raw
     .slice(headerRowIdx + 1)
-    .map((row) => String(row[colIdx] ?? "").trim())
-    .forEach((name) => {
-      if (!name) return
+    .forEach((row) => {
+      const userName = String(row[userColIdx] ?? "").trim()
+      const libraryName = String(row[libraryColIdx] ?? "").trim()
 
-      processedRows.push(name)
+      if (!userName || !libraryName) return
 
-      if (!isValidName(name)) {
-        console.log(`필터링된 이름: "${name}" (이름 패턴 불일치)`)
+      processedRows.push({ name: libraryName, user: userName })
+
+      if (!isValidName(userName)) {
+        console.log(`필터링된 이름: "${userName}" (이름 패턴 불일치)`)
         return
       }
 
-      filteredNames.push(name)
+      filteredLibraries.push({ name: libraryName, user: userName })
     })
 
   const stats: ParseStats = {
     total: processedRows.length,
-    valid: filteredNames.length,
-    filtered: processedRows.length - filteredNames.length,
+    valid: filteredLibraries.length,
+    filtered: processedRows.length - filteredLibraries.length,
   }
 
   console.log(
     `파싱 통계: 총 ${stats.total}개 행 중 ${stats.valid}개 유효, ${stats.filtered}개 필터링됨`,
   )
 
-  const koreanNames = filteredNames.filter((name) => KOREAN_NAME_PATTERN.test(name))
-  const englishNames = filteredNames.filter((name) => ENGLISH_NAME_PATTERN.test(name))
-
-  koreanNames.sort((a, b) => a.localeCompare(b, "ko"))
-  englishNames.sort((a, b) => a.localeCompare(b, "en"))
+  // 도서관별로 정렬
+  filteredLibraries.sort((a, b) => {
+    // 먼저 도서관 이름으로 정렬
+    const libraryCompare = a.name.localeCompare(b.name, "ko")
+    if (libraryCompare !== 0) return libraryCompare
+    // 같은 도서관이면 이용자 이름으로 정렬
+    return a.user.localeCompare(b.user, "ko")
+  })
 
   return {
-    names: [...koreanNames, ...englishNames],
+    libraries: filteredLibraries,
     stats,
   }
 }
