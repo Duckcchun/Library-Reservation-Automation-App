@@ -1,6 +1,6 @@
 import {
-  LABEL_WIDTH_MM,
-  LABEL_HEIGHT_MM,
+  LABEL_LENGTH_MM,
+  LABEL_TAPE_WIDTH_MM,
   DEFAULT_FONT_SIZE_PT,
 } from "@/constants"
 
@@ -18,8 +18,8 @@ export function PrintArea({ names, fontSize = DEFAULT_FONT_SIZE_PT }: PrintAreaP
           html, body {
             margin: 0 !important;
             padding: 0 !important;
-            width: ${LABEL_WIDTH_MM}mm !important;
-            height: ${LABEL_HEIGHT_MM}mm !important;
+            width: ${LABEL_LENGTH_MM}mm !important;
+            height: ${LABEL_TAPE_WIDTH_MM}mm !important;
             overflow: hidden !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
@@ -30,14 +30,14 @@ export function PrintArea({ names, fontSize = DEFAULT_FONT_SIZE_PT }: PrintAreaP
 
           @page {
             margin: 0 !important;
-            size: ${LABEL_WIDTH_MM}mm ${LABEL_HEIGHT_MM}mm;
+            size: ${LABEL_LENGTH_MM}mm ${LABEL_TAPE_WIDTH_MM}mm;
           }
 
           #print-area {
             position: absolute !important;
             top: 0 !important;
             left: 0 !important;
-            width: ${LABEL_WIDTH_MM}mm !important;
+            width: ${LABEL_LENGTH_MM}mm !important;
             margin: 0 !important;
             padding: 0 !important;
           }
@@ -46,8 +46,8 @@ export function PrintArea({ names, fontSize = DEFAULT_FONT_SIZE_PT }: PrintAreaP
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
-            width: ${LABEL_WIDTH_MM}mm !important;
-            height: ${LABEL_HEIGHT_MM}mm !important;
+            width: ${LABEL_LENGTH_MM}mm !important;
+            height: ${LABEL_TAPE_WIDTH_MM}mm !important;
             background: white !important;
             page-break-after: always !important;
             break-after: page !important;
@@ -73,11 +73,11 @@ export function PrintArea({ names, fontSize = DEFAULT_FONT_SIZE_PT }: PrintAreaP
             text-align: center !important;
             word-break: keep-all !important;
             font-family: 'Noto Sans KR', sans-serif !important;
-            width: ${LABEL_WIDTH_MM}mm !important;
-            height: ${LABEL_HEIGHT_MM}mm !important;
+            width: ${LABEL_LENGTH_MM}mm !important;
+            height: ${LABEL_TAPE_WIDTH_MM}mm !important;
             overflow: hidden !important;
             white-space: nowrap !important;
-            line-height: ${LABEL_HEIGHT_MM}mm !important;
+            line-height: ${LABEL_TAPE_WIDTH_MM}mm !important;
             margin: 0 !important;
             padding: 0 !important;
             display: block !important;

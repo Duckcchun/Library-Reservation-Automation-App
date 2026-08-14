@@ -242,7 +242,7 @@ export default function App() {
             </div>
           )}
 
-          {!names.length && !error && !loading && (
+          {!libraries.length && !error && !loading && (
             <div className="text-center py-4" style={{ color: "#c4b5fd", fontSize: 13 }}>
               파일을 업로드하면 회원 명단이 여기에 표시됩니다
             </div>
