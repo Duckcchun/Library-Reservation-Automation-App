@@ -123,7 +123,7 @@ const IC = {
 
 // ── App ───────────────────────────────────────────────────────────────────────
 
-const FONT = "'Noto Sans KR', 'Inter', system-ui, sans-serif"
+const FONT = "'Gothic A1', 'D2Coding', system-ui, sans-serif"
 
 export default function App() {
   const [names, setNames] = useState<string[]>([])
@@ -207,14 +207,11 @@ export default function App() {
         @media print {
           body * { visibility: hidden; }
           #print-area, #print-area * { visibility: visible; }
-          @page { margin: 0; size: 30mm 12mm; }
+          @page { margin: 0; size: 12mm auto; }
           #print-area { position: absolute; top: 0; left: 0; width: 100%; }
           .label-item {
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            width: 30mm !important;
-            height: 12mm !important;
+            width: 12mm !important;
+            height: auto !important;
             background: white !important;
             page-break-after: always !important;
             break-after: page !important;
@@ -232,18 +229,21 @@ export default function App() {
             font-weight: 700 !important;
             font-size: 24pt !important;
             color: black !important;
-            letter-spacing: -0.02em !important;
+            letter-spacing: 0.15em !important;
             text-align: center !important;
             word-break: keep-all !important;
-            font-family: 'Noto Sans KR', sans-serif !important;
-            width: 30mm !important;
-            height: 12mm !important;
+            font-family: 'Gothic A1', 'D2Coding', sans-serif !important;
+            width: 12mm !important;
+            height: auto !important;
             overflow: hidden !important;
             white-space: nowrap !important;
-            line-height: 12mm !important;
+            line-height: 1.2 !important;
             margin: 0 !important;
             padding: 0 !important;
-            display: block !important;
+            position: absolute !important;
+            top: 50% !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%) !important;
           }
         }
       `}</style>
