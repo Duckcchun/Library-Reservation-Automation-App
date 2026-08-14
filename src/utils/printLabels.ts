@@ -100,7 +100,7 @@ function buildPrintHtml(pages: string[][], fontSizePt: number): string {
       line-height: 1;
       color: #000;
       white-space: nowrap;
-      letter-spacing: 0.15em;
+      letter-spacing: 0.2em;
     }
 
     .label-single {

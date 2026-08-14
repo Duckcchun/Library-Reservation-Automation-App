@@ -18,7 +18,7 @@ export const NAME_RIGHT_PADDING_MM = 9
 /** 2명/장일 때 좌·우 이름 사이 간격 mm */
 export const NAME_COLUMN_GAP_MM = 6
 /** 이름 세로 위치 — 아래로 내릴 mm */
-export const NAME_OFFSET_Y_MM = 2.5
+export const NAME_OFFSET_Y_MM = 3.0
 
 export const PRINTER_DPI = 180
 export const MM_TO_PT = 72 / 25.4
