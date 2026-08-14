@@ -7,19 +7,17 @@ import {
   NAME_COLUMN_GAP_MM,
   NAME_OFFSET_Y_MM,
 } from "@/constants"
-import { getLibraryColor, normalizeLibraryName } from "@/constants/library"
-import type { LibraryInfo } from "@/utils/parseNames"
 
-function chunkLibraries(libraries: LibraryInfo[]): LibraryInfo[][] {
-  const chunks: LibraryInfo[][] = []
-  for (let i = 0; i < libraries.length; i += NAMES_PER_LABEL) {
-    chunks.push(libraries.slice(i, i + NAMES_PER_LABEL))
+function chunkNames(names: string[]): string[][] {
+  const chunks: string[][] = []
+  for (let i = 0; i < names.length; i += NAMES_PER_LABEL) {
+    chunks.push(names.slice(i, i + NAMES_PER_LABEL))
   }
   return chunks
 }
 
-export function countLabelPages(librariesCount: number): number {
-  return Math.ceil(librariesCount / NAMES_PER_LABEL)
+export function countLabelPages(namesCount: number): number {
+  return Math.ceil(namesCount / NAMES_PER_LABEL)
 }
 
 function escapeHtml(text: string): string {
@@ -30,42 +28,24 @@ function escapeHtml(text: string): string {
     .replace(/"/g, "&quot;")
 }
 
-function buildLabelPage(librariesOnLabel: LibraryInfo[]): string {
-  if (librariesOnLabel.length === 1) {
-    const lib = librariesOnLabel[0]
-    const normalizedLibrary = normalizeLibraryName(lib.name)
-    const libraryColor = getLibraryColor(normalizedLibrary)
-    
+function buildLabelPage(namesOnLabel: string[]): string {
+  if (namesOnLabel.length === 1) {
     return `<div class="page">
       <div class="label label-single">
-        <div class="user-name">${escapeHtml(lib.user)}</div>
-        <div class="library-name" style="color: ${libraryColor}">${escapeHtml(normalizedLibrary)}</div>
+        <span class="name">${escapeHtml(namesOnLabel[0])}</span>
       </div>
     </div>`
   }
 
-  const lib1 = librariesOnLabel[0]
-  const lib2 = librariesOnLabel[1]
-  const normalizedLibrary1 = normalizeLibraryName(lib1.name)
-  const normalizedLibrary2 = normalizeLibraryName(lib2.name)
-  const libraryColor1 = getLibraryColor(normalizedLibrary1)
-  const libraryColor2 = getLibraryColor(normalizedLibrary2)
-
   return `<div class="page">
     <div class="label label-pair">
-      <div class="user-column">
-        <div class="user-name">${escapeHtml(lib1.user)}</div>
-        <div class="library-name" style="color: ${libraryColor1}">${escapeHtml(normalizedLibrary1)}</div>
-      </div>
-      <div class="user-column">
-        <div class="user-name">${escapeHtml(lib2.user)}</div>
-        <div class="library-name" style="color: ${libraryColor2}">${escapeHtml(normalizedLibrary2)}</div>
-      </div>
+      <span class="name">${escapeHtml(namesOnLabel[0])}</span>
+      <span class="name">${escapeHtml(namesOnLabel[1])}</span>
     </div>
   </div>`
 }
 
-function buildPrintHtml(pages: LibraryInfo[][], fontSizePt: number): string {
+function buildPrintHtml(pages: string[][], fontSizePt: number): string {
   const body = pages.map((pair) => buildLabelPage(pair)).join("")
 
   return `<!DOCTYPE html>
@@ -74,7 +54,6 @@ function buildPrintHtml(pages: LibraryInfo[][], fontSizePt: number): string {
   <meta charset="utf-8" />
   <title>라벨 인쇄</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@700&display=swap" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/naver/d2codingfont@latest/d2coding/d2coding-full.css" />
   <style>
     @page {
       size: ${LABEL_LENGTH_MM}mm ${LABEL_TAPE_WIDTH_MM}mm;
@@ -114,48 +93,34 @@ function buildPrintHtml(pages: LibraryInfo[][], fontSizePt: number): string {
       padding-top: ${NAME_OFFSET_Y_MM}mm;
     }
 
-    .user-name {
+    .name {
       font-family: "Gothic A1", "D2Coding", sans-serif;
       font-weight: 700;
       font-size: ${fontSizePt}pt;
       line-height: 1;
       color: #000;
       white-space: nowrap;
-      letter-spacing: 0.2em;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .library-name {
-      font-family: "Gothic A1", "D2Coding", sans-serif;
-      font-weight: 700;
-      font-size: ${Math.round(fontSizePt * 0.7)}pt;
-      line-height: 1;
-      white-space: nowrap;
       letter-spacing: 0.15em;
-      margin-top: 0.5mm;
-      font-variant-numeric: tabular-nums;
     }
 
     .label-single {
       display: flex;
-      flex-direction: column;
+      align-items: center;
       padding-left: ${NAME_LEFT_PADDING_MM}mm;
     }
 
-    .label-single .user-name {
+    .label-single .name {
       padding-right: ${NAME_RIGHT_PADDING_MM}mm;
     }
 
     .label-pair {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      align-items: start;
+      align-items: center;
       column-gap: ${NAME_COLUMN_GAP_MM}mm;
     }
 
-    .user-column {
-      display: flex;
-      flex-direction: column;
+    .label-pair .name {
       padding-left: ${NAME_LEFT_PADDING_MM}mm;
       padding-right: ${NAME_RIGHT_PADDING_MM}mm;
     }
@@ -171,12 +136,11 @@ async function waitForIframeFonts(doc: Document, fontSizePt: number): Promise<vo
 
   await fonts.load(`700 12pt "Gothic A1"`)
   await fonts.load(`700 ${fontSizePt}pt "Gothic A1"`)
-  await fonts.load(`700 ${Math.round(fontSizePt * 0.7)}pt "Gothic A1"`)
   await fonts.ready
 }
 
-export async function printLabels(libraries: LibraryInfo[], fontSizePt: number): Promise<void> {
-  const pages = chunkLibraries(libraries)
+export async function printLabels(names: string[], fontSizePt: number): Promise<void> {
+  const pages = chunkNames(names)
   const html = buildPrintHtml(pages, fontSizePt)
 
   const iframe = document.createElement("iframe")

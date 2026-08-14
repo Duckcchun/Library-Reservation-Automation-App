@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useMemo, DragEvent, ChangeEvent } from "react"
-import { parseNames, type ParseStats, type LibraryInfo } from "@/utils/parseNames"
+import { parseNames, type ParseStats } from "@/utils/parseNames"
 import { FONT, SUPPORTED_EXTENSIONS, DEFAULT_FONT_SIZE_PT } from "@/constants"
 import { IC } from "@/components/icons"
 import { UploadZone } from "@/components/UploadZone"
@@ -8,7 +8,7 @@ import { PrintPanel } from "@/components/PrintPanel"
 import { printLabels, countLabelPages } from "@/utils/printLabels"
 
 export default function App() {
-  const [libraries, setLibraries] = useState<LibraryInfo[]>([])
+  const [names, setNames] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
   const [dragging, setDragging] = useState(false)
   const [fileName, setFileName] = useState<string | null>(null)
@@ -21,20 +21,20 @@ export default function App() {
 
   const filtered = useMemo(() => {
     const trimmedQuery = query.trim()
-    return libraries
-      .map((lib, index) => ({ lib, index }))
-      .filter(({ lib }) => !trimmedQuery || lib.user.includes(trimmedQuery) || lib.name.includes(trimmedQuery))
-  }, [libraries, query])
+    return names
+      .map((name, index) => ({ name, index }))
+      .filter(({ name }) => !trimmedQuery || name.includes(trimmedQuery))
+  }, [names, query])
 
   const duplicates = useMemo(() => {
     const count: Record<string, number> = {}
-    for (const lib of libraries) count[lib.user] = (count[lib.user] ?? 0) + 1
+    for (const n of names) count[n] = (count[n] ?? 0) + 1
     return new Set(Object.keys(count).filter((n) => count[n] > 1))
-  }, [libraries])
+  }, [names])
 
   const handleFile = useCallback(async (file: File) => {
     setError(null)
-    setLibraries([])
+    setNames([])
     setQuery("")
 
     const ext = file.name.split(".").pop()?.toLowerCase()
@@ -48,7 +48,7 @@ export default function App() {
 
     try {
       const result = await parseNames(file)
-      setLibraries(result.libraries)
+      setNames(result.names)
       setParseStats(result.stats)
     } catch (err) {
       const errorMessage =
@@ -78,10 +78,10 @@ export default function App() {
   }
 
   const removeName = (index: number) =>
-    setLibraries((prev) => prev.filter((_, idx) => idx !== index))
+    setNames((prev) => prev.filter((_, idx) => idx !== index))
 
   const reset = () => {
-    setLibraries([])
+    setNames([])
     setFileName(null)
     setError(null)
     setQuery("")
@@ -89,13 +89,13 @@ export default function App() {
   }
 
   const handlePrint = useCallback(async () => {
-    if (!libraries.length || printing) return
+    if (!names.length || printing) return
 
     setPrinting(true)
     setError(null)
 
     try {
-      await printLabels(libraries, fontSize)
+      await printLabels(names, fontSize)
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "인쇄 준비 중 오류가 발생했습니다."
@@ -103,7 +103,7 @@ export default function App() {
     } finally {
       setPrinting(false)
     }
-  }, [libraries, fontSize, printing])
+  }, [names, fontSize, printing])
 
   return (
     <div
@@ -144,7 +144,7 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-2">
-            {libraries.length > 0 && (
+            {names.length > 0 && (
               <>
                 <button
                   onClick={reset}
@@ -168,7 +168,7 @@ export default function App() {
                   <div className="w-4 h-4">
                     {printing ? <IC.Spinner /> : <IC.Print />}
                   </div>
-                  {printing ? "인쇄 준비 중..." : `인쇄 (${countLabelPages(libraries.length)}장)`}
+                  {printing ? "인쇄 준비 중..." : `인쇄 (${countLabelPages(names.length)}장)`}
                 </button>
               </>
             )}
@@ -180,7 +180,7 @@ export default function App() {
             dragging={dragging}
             loading={loading}
             fileName={fileName}
-            namesCount={libraries.length}
+            namesCount={names.length}
             parseStats={parseStats}
             duplicateCount={duplicates.size}
             fileRef={fileRef}
@@ -217,23 +217,23 @@ export default function App() {
             </div>
           )}
 
-          {libraries.length > 0 && (
+          {names.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-[1fr_264px] gap-5 items-start">
               <NameList
                 filtered={filtered}
-                totalCount={libraries.length}
+                totalCount={names.length}
                 query={query}
                 duplicates={duplicates}
                 onQueryChange={setQuery}
                 onRemove={removeName}
               />
               <PrintPanel
-                namesCount={libraries.length}
+                namesCount={names.length}
                 fontSize={fontSize}
                 previewNames={
-                  libraries.length >= 2
-                    ? [libraries[0].user, libraries[1].user]
-                    : [libraries[0]?.user ?? "홍길동"]
+                  names.length >= 2
+                    ? [names[0], names[1]]
+                    : [names[0] ?? "홍길동"]
                 }
                 printing={printing}
                 onFontSizeChange={setFontSize}
@@ -242,7 +242,7 @@ export default function App() {
             </div>
           )}
 
-          {!libraries.length && !error && !loading && (
+          {!names.length && !error && !loading && (
             <div className="text-center py-4" style={{ color: "#c4b5fd", fontSize: 13 }}>
               파일을 업로드하면 회원 명단이 여기에 표시됩니다
             </div>
