@@ -28,21 +28,31 @@ export async function parseNames(
 
   if (!raw.length) throw new Error("시트에 데이터가 없습니다.")
 
-  // '이용자명' 헤더가 있는 행을 찾음
-  const headerRowIdx = raw.findIndex((row) =>
-    row.some((cell) => String(cell ?? "").trim() === "이용자명"),
-  )
+  // '이용자명' 또는 '예약자' 헤더가 있는 행을 찾음
+  const NAME_HEADERS = ["이용자명", "예약자"]
+  let headerRowIdx = -1
+  let nameHeaderFound = ""
+
+  for (const header of NAME_HEADERS) {
+    headerRowIdx = raw.findIndex((row) =>
+      row.some((cell) => String(cell ?? "").trim() === header),
+    )
+    if (headerRowIdx !== -1) {
+      nameHeaderFound = header
+      break
+    }
+  }
+
   if (headerRowIdx === -1) {
-    throw new Error('"이용자명" 열을 찾을 수 없습니다. 파일 형식을 확인해 주세요.')
+    throw new Error('"이용자명" 또는 "예약자" 열을 찾을 수 없습니다. 파일 형식을 확인해 주세요.')
   }
 
   const headers = raw[headerRowIdx].map((h) => String(h ?? "").trim())
-  const userColIdx = headers.indexOf("이용자명")
+  const userColIdx = headers.indexOf(nameHeaderFound)
   const libraryColIdx = headers.indexOf("요청도서관")
 
-  if (libraryColIdx === -1) {
-    throw new Error('"요청도서관" 열을 찾을 수 없습니다. 파일 형식을 확인해 주세요.')
-  }
+  // 요청도서관 열이 없으면 기본값 사용
+  const DEFAULT_LIBRARY = "자양한강도서관"
 
   const processedRows: LibraryInfo[] = []
   const filteredLibraries: LibraryInfo[] = []
@@ -51,9 +61,13 @@ export async function parseNames(
     .slice(headerRowIdx + 1)
     .forEach((row) => {
       const userName = String(row[userColIdx] ?? "").trim()
-      const libraryName = String(row[libraryColIdx] ?? "").trim()
+      const libraryName = libraryColIdx !== -1
+        ? String(row[libraryColIdx] ?? "").trim()
+        : DEFAULT_LIBRARY
 
-      if (!userName || !libraryName) return
+      if (!userName) return
+      // 요청도서관 열이 있을 때만 도서관 빈 값 체크
+      if (libraryColIdx !== -1 && !libraryName) return
 
       processedRows.push({ name: libraryName, user: userName })
 
