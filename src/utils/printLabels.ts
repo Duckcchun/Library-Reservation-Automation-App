@@ -74,6 +74,7 @@ function buildPrintHtml(pages: LibraryInfo[][], fontSizePt: number): string {
   <meta charset="utf-8" />
   <title>라벨 인쇄</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@700&display=swap" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/naver/d2codingfont@latest/d2coding/d2coding-full.css" />
   <style>
     @page {
       size: ${LABEL_LENGTH_MM}mm ${LABEL_TAPE_WIDTH_MM}mm;
