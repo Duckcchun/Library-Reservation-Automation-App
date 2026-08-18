@@ -28,19 +28,24 @@ function escapeHtml(text: string): string {
     .replace(/"/g, "&quot;")
 }
 
+function nameSpan(name: string): string {
+  const cls = name.length === 3 ? 'name name-3char' : 'name'
+  return `<span class="${cls}">${escapeHtml(name)}</span>`
+}
+
 function buildLabelPage(namesOnLabel: string[]): string {
   if (namesOnLabel.length === 1) {
     return `<div class="page">
       <div class="label label-single">
-        <span class="name">${escapeHtml(namesOnLabel[0])}</span>
+        ${nameSpan(namesOnLabel[0])}
       </div>
     </div>`
   }
 
   return `<div class="page">
     <div class="label label-pair">
-      <span class="name">${escapeHtml(namesOnLabel[0])}</span>
-      <span class="name">${escapeHtml(namesOnLabel[1])}</span>
+      ${nameSpan(namesOnLabel[0])}
+      ${nameSpan(namesOnLabel[1])}
     </div>
   </div>`
 }
@@ -101,6 +106,10 @@ function buildPrintHtml(pages: string[][], fontSizePt: number): string {
       color: #000;
       white-space: nowrap;
       letter-spacing: 0.2em;
+    }
+
+    .name-3char {
+      letter-spacing: 0.12em;
     }
 
     .label-single {
